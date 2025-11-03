@@ -13,6 +13,11 @@ async function getSessionFromCookie() {
   return session;
 }
 
+/** type guard: unknown -> is array of number|string (we accept either) */
+function isNumberOrStringArray(x: unknown): x is Array<number | string> {
+  return Array.isArray(x) && x.every((item) => typeof item === "number" || typeof item === "string");
+}
+
 /**
  * GET /api/tags
  *   - returns tags belonging to the current user
@@ -37,7 +42,7 @@ export async function GET() {
 
 /**
  * POST /api/tags
- * body: { name: string, noteIds?: number[] }
+ * body: { name: string, noteIds?: number[] | string[] }
  * - creates (or upserts) a tag for the current user
  * - attaches only notes that belong to the current user
  */
@@ -46,13 +51,28 @@ export async function POST(req: Request) {
     const session = await getSessionFromCookie();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const body = await req.json().catch(() => ({}));
-    const name = (body?.name ?? "").toString().trim();
-    const noteIds = Array.isArray(body?.noteIds)
-      ? body.noteIds.map((n: any) => Number(n)).filter((n: number) => !Number.isNaN(n))
-      : [];
+    // parse body as unknown
+    const rawBody = await req.json().catch(() => ({} as unknown));
+
+    // get name safely
+    const name =
+      typeof rawBody === "object" && rawBody !== null && "name" in rawBody && typeof (rawBody as Record<string, unknown>).name === "string"
+        ? ((rawBody as Record<string, unknown>).name as string).trim()
+        : "";
 
     if (!name) return NextResponse.json({ error: "Missing name" }, { status: 400 });
+
+    // Extract noteIds safely: support number[] or string[] coming from client
+    const maybeNoteIds =
+      typeof rawBody === "object" && rawBody !== null && "noteIds" in rawBody
+        ? (rawBody as Record<string, unknown>).noteIds
+        : undefined;
+
+    let noteIds: number[] = [];
+    if (isNumberOrStringArray(maybeNoteIds)) {
+      // convert to numbers and filter NaN
+      noteIds = maybeNoteIds.map((v) => Number(v)).filter((n) => !Number.isNaN(n));
+    }
 
     // upsert tag scoped to this user (requires @@unique([userId, name]) in schema)
     const tag = await prisma.tag.upsert({
