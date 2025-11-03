@@ -14,9 +14,19 @@ export default function TeamNoteTakingPage() {
 
   async function fetchPosts() {
     setLoading(true);
-    const res = await fetch('/api/posts');
-    const data = await res.json();
-    setPosts(data);
+    try {
+      const res = await fetch('/api/posts');
+      if (!res.ok) {
+        setPosts([]);
+        setLoading(false);
+        return;
+      }
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : [];
+      setPosts(data);
+    } catch (err) {
+      setPosts([]);
+    }
     setLoading(false);
   }
 

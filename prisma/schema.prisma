@@ -6,12 +6,60 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-model Post {
-  id         String  @id @default(cuid())
-  email      String?
-  password   String?
+model User {
+  id        String    @id @default(cuid())
+  email     String?   @unique
+  password  String?
+  notes     Note[]
+  sessions  Session[]
+  tags      Tag[] // <-- add this relation field
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Note {
+  id        Int       @id @default(autoincrement())
+  title     String
+  content   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags      NoteTag[]
+}
+
+model Tag {
+  id     Int       @id @default(autoincrement())
+  name   String
+  userId String
+  user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes  NoteTag[]
+
+  @@unique([userId, name]) // ensure unique tag names per user
+}
+
+model NoteTag {
+  noteId Int
+  tagId  Int
+  note   Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([noteId, tagId])
+  @@index([tagId])
+  @@index([noteId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([userId])
 }
