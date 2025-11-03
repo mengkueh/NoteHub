@@ -24,28 +24,39 @@ export default function NewNotePage() {
         const txt = await r.text();
         // try parse if it is JSON string
         try {
-          return { ok: r.ok, body: JSON.parse(txt) };
+          return { ok: r.ok, body: JSON.parse(txt) as unknown };
         } catch {
-          // not JSON — return raw text
-          return { ok: r.ok, body: txt };
+          // not JSON — return raw text as unknown
+          return { ok: r.ok, body: txt as unknown };
         }
       })
-      .then(({ ok, body }) => {
+      .then(({ ok, body }: { ok: boolean; body: unknown }) => {
         if (!mounted) return;
         // Debug: print what backend returned
         console.log("/api/tags response:", body);
 
-        // If backend returns { tags: [...] } or {data: [...]}, try to pick array inside
+        // If backend returns an array (direct)
         if (Array.isArray(body)) {
-          setTags(body);
-        } else if (body && Array.isArray((body as any).tags)) {
-          setTags((body as any).tags);
-        } else if (body && Array.isArray((body as any).data)) {
-          setTags((body as any).data);
-        } else {
-          // fallback: empty array
-          setTags([]);
+          // assume Tag[]
+          setTags(body as Tag[]);
+          return;
         }
+
+        // If backend returned an object, check for fields like { tags: [...] } or { data: [...] }
+        if (typeof body === "object" && body !== null) {
+          const obj = body as Record<string, unknown>;
+          if (Array.isArray(obj.tags)) {
+            setTags(obj.tags as Tag[]);
+            return;
+          }
+          if (Array.isArray(obj.data)) {
+            setTags(obj.data as Tag[]);
+            return;
+          }
+        }
+
+        // fallback: empty array
+        setTags([]);
       })
       .catch((e) => {
         console.error("fetch /api/tags error:", e);
@@ -74,7 +85,8 @@ export default function NewNotePage() {
         body: JSON.stringify({ title: title.trim(), content: content.trim(), tagIds: selected }),
       });
       if (!res.ok) {
-        const e = await res.json().catch(() => null);
+        // type the error shape instead of using `any`
+        const e = (await res.json().catch(() => null)) as { error?: string } | null;
         alert(e?.error || "Failed to create");
         return;
       }
