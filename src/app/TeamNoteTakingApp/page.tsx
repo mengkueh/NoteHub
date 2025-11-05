@@ -63,6 +63,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import styles from "./page.module.css";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -86,33 +87,49 @@ export default function LoginPage() {
   };
 
   return (
-    <main style={{ color: 'black', backgroundColor: 'White', padding: 20, fontFamily: 'sans-serif', textAlign: 'center', alignItems: 'center' }}>
-      <div className='m-[10%]'>
-        <h1 className='text-6xl'>WELCOME!</h1>
-        <h1 className='text-4xl'>Team Note Taking App</h1>
+    <main className={styles.main}>
+      <div className={styles.card}>
+        <h1 className={styles.title}>WELCOME!</h1>
+        <h2 className={styles.subtitle}>Team Note Taking App</h2>
+
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div>
+            <label className={styles.label}>Email</label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className={styles.input}
+            />
+          </div>
+
+          <div>
+            <label className={styles.label}>Password</label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className={styles.input}
+            />
+          </div>
+
+          <button type="submit" className={styles.primaryButton}>
+            Login
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/TeamNoteTakingApp/register")}
+            className={styles.secondaryButton}
+          >
+            Register
+          </button>
+        </form>
       </div>
-      <form className='text-xl' onSubmit={handleSubmit}>
-        <p>Email:</p>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ backgroundColor: 'lightgrey', width: '100%' ,marginBottom: 8 }}
-        />
-        <p>Password:</p>
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ backgroundColor: 'lightgrey', width: '100%' ,marginBottom: 8 }}
-        />
-        <button className='display: px-[2%] block border rounded mx-auto cursor-pointer hover:bg-blue-600 transition-all duration-300 ease-in-out' type="submit">Login</button>
-        <button className='display: px-[2%] mt-[2%] block border rounded mx-auto cursor-pointer hover:bg-blue-600 transition-all duration-300 ease-in-out' onClick={() => router.push('/TeamNoteTakingApp/register')}>Register</button>
-      </form>
     </main>
   );
 }
