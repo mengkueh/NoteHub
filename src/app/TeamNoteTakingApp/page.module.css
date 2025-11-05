@@ -1,98 +1,97 @@
 .main {
-  display: flex;
-  min-height: 100vh;
-  align-items: center;
-  justify-content: center;
-  background-color: #050505; /* prev: linear-gradient(135deg, #dbeafe 0%, #ffffff 50%, #eef2ff 100%) */
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu,
-    Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol";
-}
-
-.card {
-  background: #ffffff;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-  border-radius: 1rem;
-  padding: 2.5rem;
-  width: 100%;
-  max-width: 28rem;
-}
-
-.title {
-  font-size: 2.25rem; /* 36px */
-  line-height: 2.5rem; /* 40px */
-  font-weight: 700;
-  text-align: center;
-  color: #dc2d25; /* prev: #1d4ed8 */
-  margin-bottom: 0.5rem;
-}
-
-.subtitle {
-  font-size: 1.5rem; /* 24px */
-  line-height: 2rem; /* 32px */
-  text-align: center;
-  color: #050505; /* prev: #374151 */
-  margin-bottom: 2rem;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  row-gap: 1.5rem; /* space-y-6 */
-}
-
-.label {
-  display: block;
-  color: #050505; /* prev: #374151 */
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.input {
-  width: 100%;
-  padding: 0.75rem; /* p-3 */
-  border: 1px solid #d1d5db; /* gray-300 */
-  border-radius: 0.5rem; /* rounded-lg */
-  background: #f9fafb; /* gray-50 */
-  outline: none;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.input:focus {
-  box-shadow: 0 0 0 3px rgba(220, 45, 37, 0.4); /* prev: rgba(96, 165, 250, 0.6) */
-  border-color: #dc2d25; /* prev: #93c5fd */
-}
-
-.primaryButton {
-  width: 100%;
-  background: #dc2d25; /* prev: #2563eb */
-  color: #ffffff;
-  font-weight: 600;
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.primaryButton:hover {
-  background: #050505; /* prev: #1d4ed8 */
-}
-
-.secondaryButton {
-  width: 100%;
-  background: transparent;
-  color: #dc2d25; /* prev: #2563eb */
-  font-weight: 600;
-  padding: 0.75rem 1rem;
-  border: 1px solid #dc2d25; /* prev: #2563eb */
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.secondaryButton:hover {
-  background: #050505; /* prev: #eff6ff */
-}
-
-
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    background-image: linear-gradient(135deg, lightblue 0%, white 70%, lavender 100%);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu,
+      Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji",
+      "Segoe UI Emoji", "Segoe UI Symbol";
+  }
+  
+  .card {
+    background: white;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 1rem;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 28rem;
+  }
+  
+  .title {
+    font-size: 2.25rem; /* 36px */
+    line-height: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    color: blue;
+    margin-bottom: 0.5rem;
+  }
+  
+  .subtitle {
+    font-size: 1.5rem; /* 24px */
+    line-height: 2rem;
+    text-align: center;
+    color: dimgray;
+    margin-bottom: 2rem;
+  }
+  
+  .form {
+    display: flex;
+    flex-direction: column;
+    row-gap: 1.5rem;
+  }
+  
+  .label {
+    display: block;
+    color: dimgray;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  
+  .input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid lightgray;
+    border-radius: 0.5rem;
+    background: #f8f8f8;
+    outline: none;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  
+  .input:focus {
+    box-shadow: 0 0 0 3px rgba(100, 149, 237, 0.6); /* cornflowerblue */
+    border-color: cornflowerblue;
+  }
+  
+  .primaryButton {
+    width: 100%;
+    background: royalblue;
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .primaryButton:hover {
+    background: mediumblue;
+  }
+  
+  .secondaryButton {
+    width: 100%;
+    background: transparent;
+    color: royalblue;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    border: 1px solid royalblue;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .secondaryButton:hover {
+    background: aliceblue;
+  }
+  
