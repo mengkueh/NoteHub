@@ -1,9 +1,11 @@
 // src/app/TeamNoteTakingApp/tags/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import styles from "../home/page.module.css";
+import { useLockBodyScroll } from "../useLockBodyScroll";
 
 type Tag = { id: number; name: string; notes?: { note: { id: number; title: string } }[] };
 type Note = { id: number; title: string; content?: string };
@@ -12,43 +14,46 @@ export default function TagsPage() {
   const router = useRouter();
   const [tags, setTags] = useState<Tag[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // modal state
-  const [showAdd, setShowAdd] = useState(false);
+  const [loadingTags, setLoadingTags] = useState(true);
+  const [loadingNotes, setLoadingNotes] = useState(true);
   const [tagName, setTagName] = useState("");
   const [selectedNoteIds, setSelectedNoteIds] = useState<number[]>([]);
   const [creating, setCreating] = useState(false);
 
+  useLockBodyScroll();
+
   useEffect(() => {
-    fetchTags();
-    fetchNotes();
+    refreshTags();
+    refreshNotes();
   }, []);
 
-  async function fetchTags() {
+  async function refreshTags() {
+    setLoadingTags(true);
     try {
       const res = await fetch("/api/tags");
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
-      setTags(data || []);
+      setTags(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("fetch tags err:", err);
       setTags([]);
+    } finally {
+      setLoadingTags(false);
     }
   }
 
-  async function fetchNotes() {
-    setLoading(true);
+  async function refreshNotes() {
+    setLoadingNotes(true);
     try {
       const res = await fetch("/api/notes");
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
-      setNotes(data || []);
+      setNotes(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("fetch notes err:", err);
       setNotes([]);
     } finally {
-      setLoading(false);
+      setLoadingNotes(false);
     }
   }
 
@@ -56,20 +61,13 @@ export default function TagsPage() {
     setSelectedNoteIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
-  function openAdd() {
+  function resetForm() {
     setTagName("");
     setSelectedNoteIds([]);
-    setShowAdd(true);
-  }
-  function closeAdd() {
-    setShowAdd(false);
-    setTagName("");
-    setSelectedNoteIds([]);
-    setCreating(false);
   }
 
   async function handleCreateTag() {
-    const name = String(tagName || "").trim();
+    const name = tagName.trim();
     if (!name) {
       alert("Please enter a tag name");
       return;
@@ -88,110 +86,181 @@ export default function TagsPage() {
         return;
       }
       const created = (await res.json()) as Tag;
-
-      // update list (avoid duplicates)
       setTags((prev) => {
         const exists = prev.find((t) => t.id === created.id || t.name === created.name);
         if (exists) return prev;
         return [...prev, created].sort((a, b) => a.name.localeCompare(b.name));
       });
-
-      closeAdd();
-
-      // optional: navigate to the created tag's page (if you have /tags/[id])
+      resetForm();
       if (created?.id) router.push(`/TeamNoteTakingApp/tags/${created.id}`);
     } catch (err) {
       console.error("create tag err:", err);
       alert("Network error");
+    } finally {
       setCreating(false);
     }
   }
 
+  const tagCount = useMemo(() => tags.length, [tags]);
+
   return (
-    <main style={{ padding: 20, maxWidth: 900, margin: "0 auto" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>Tags</h1>
-        <div style={{ display: "flex", gap: 8 }}>
-          <Link href="/TeamNoteTakingApp/home"><button>Back</button></Link>
-          <Link href="/TeamNoteTakingApp/note/new"><button>New Note</button></Link>
-          <button onClick={openAdd}>Add Tag</button>
+    <main className={styles.dashboard}>
+      <aside className={styles.sidebar}>
+        <div className={styles.sidebarHeader}>
+          <span>NoteHub</span>
+          <div className={styles.spacer} />
+          <Link href="/TeamNoteTakingApp" className={styles.logoutButton}>
+            Logout
+          </Link>
         </div>
-      </header>
+        <div className={styles.sidebarActions}>
+          <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
+            <span>📝</span>
+            <span>Dashboard</span>
+          </Link>
+          <Link href="/TeamNoteTakingApp/note/new" className={styles.sidebarButton}>
+            <span>＋</span>
+            <span>New Note</span>
+          </Link>
+          <Link href="/TeamNoteTakingApp/tags" className={styles.sidebarButton}>
+            <span>#</span>
+            <span>Tags</span>
+          </Link>
+          <Link href="/TeamNoteTakingApp/settings" className={styles.sidebarButton}>
+            <span>⚙</span>
+            <span>Settings</span>
+          </Link>
+        </div>
+      </aside>
 
-      <section style={{ marginTop: 18 }}>
-        {loading ? <p>Loading notes...</p> : null}
+      <section className={styles.listPane}>
+        <div className={styles.listHeader}>
+          <div>
+            <p className={styles.sectionTitle}>All tags</p>
+            <p className={styles.sectionSubtitle}>
+              {loadingTags ? "Loading…" : tagCount === 0 ? "No tags yet" : `${tagCount} tag${tagCount === 1 ? "" : "s"}`}
+            </p>
+          </div>
+          <button
+            type="button"
+            className={styles.button}
+            onClick={refreshTags}
+            disabled={loadingTags}
+          >
+            Refresh
+          </button>
+        </div>
 
-        <div style={{ marginTop: 12 }}>
-          {tags.length === 0 ? (
-            <p>No tags yet.</p>
+        <div className={styles.list}>
+          {loadingTags ? (
+            <div className={styles.listEmpty}>Loading tags…</div>
+          ) : tags.length === 0 ? (
+            <div className={styles.listEmpty}>No tags yet. Create one on the right.</div>
           ) : (
-            <ul style={{ listStyle: "none", padding: 0 }}>
-              {tags.map((t) => (
-                <li key={t.id} style={{ border: "1px solid #eee", padding: 12, marginBottom: 10, borderRadius: 6, display: "flex", justifyContent: "space-between" }}>
-                  <div>{t.name}</div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => router.push(`/TeamNoteTakingApp/tags/${t.id}`)}>View notes</button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            tags
+              .slice()
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((tag) => (
+                <Link
+                  key={tag.id}
+                  href={`/TeamNoteTakingApp/tags/${tag.id}`}
+                  className={styles.tagOption}
+                >
+                  <span className={styles.tagOptionLabel}>{tag.name}</span>
+                  <span className={styles.tagOptionCount}>
+                    {(tag.notes?.length ?? 0) === 1
+                      ? "1 note"
+                      : `${tag.notes?.length ?? 0} notes`}
+                  </span>
+                </Link>
+              ))
           )}
         </div>
       </section>
 
-      {/* Add Tag modal */}
-      {showAdd && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          onClick={closeAdd}
-          style={{
-            position: "fixed",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(0,0,0,0.35)",
-            zIndex: 9999,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{ width: 720, background: "#fff", padding: 18, borderRadius: 8, boxShadow: "0 8px 30px rgba(0,0,0,0.15)" }}
-          >
-            <h3 style={{ marginTop: 0 }}>Add Tag</h3>
+      <section className={styles.contentPane}>
+        <div className={styles.contentHeader}>
+          <div className={styles.contentTitle}>Create a tag</div>
+          <div className={styles.row}>
+            <Link href="/TeamNoteTakingApp/home">Dashboard</Link>
+            <Link href="/TeamNoteTakingApp/note/new">New note</Link>
+          </div>
+        </div>
 
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", marginBottom: 6 }}>Tag name</label>
-              <input value={tagName} onChange={(e) => setTagName(e.target.value)} placeholder="e.g. Work" style={{ width: "100%", padding: 8 }} autoFocus />
+        <div className={`${styles.contentBody} ${styles.contentScroll}`}>
+          <div className={styles.surface}>
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel} htmlFor="tag-name-input">
+                Tag name
+              </label>
+              <input
+                id="tag-name-input"
+                value={tagName}
+                onChange={(e) => setTagName(e.target.value)}
+                className={styles.input}
+                placeholder="e.g. Project Atlas"
+                maxLength={80}
+              />
             </div>
 
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", marginBottom: 8 }}>Select notes to include</label>
-              <div style={{ maxHeight: 280, overflow: "auto", border: "1px solid #eee", padding: 8, borderRadius: 6 }}>
-                {notes.length === 0 ? (
-                  <p style={{ margin: 0 }}>No notes available.</p>
+            <div className={styles.fieldGroup}>
+              <span className={styles.fieldLabel}>Attach notes (optional)</span>
+              <div className={`${styles.surface} ${styles.surfaceDense}`} style={{ maxHeight: 280, overflow: "auto" }}>
+                {loadingNotes ? (
+                  <div className={styles.listEmpty}>Loading notes…</div>
+                ) : notes.length === 0 ? (
+                  <div className={styles.listEmpty}>No notes yet. Create one first.</div>
                 ) : (
-                  notes.map((n) => (
-                    <div key={n.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 4px", borderBottom: "1px solid #fafafa" }}>
-                      <input type="checkbox" checked={selectedNoteIds.includes(n.id)} onChange={() => toggleNoteSelect(n.id)} />
-                      <div>
-                        <div style={{ fontWeight: 700 }}>{n.title}</div>
-                        <div style={{ fontSize: 12, color: "#666" }}>{n.content ? (n.content.length > 80 ? n.content.slice(0, 80) + "…" : n.content) : null}</div>
-                      </div>
-                    </div>
-                  ))
+                  notes.map((note) => {
+                    const isChecked = selectedNoteIds.includes(note.id);
+                    const preview =
+                      note.content && note.content.length > 100
+                        ? `${note.content.slice(0, 100)}…`
+                        : note.content;
+                    return (
+                      <label
+                        key={note.id}
+                        className={`${styles.checkRow} ${isChecked ? styles.checkRowActive : ""}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleNoteSelect(note.id)}
+                        />
+                        <div>
+                          <div className={styles.checkRowTitle}>{note.title || "Untitled note"}</div>
+                          {preview ? (
+                            <div className={styles.checkRowPreview}>{preview}</div>
+                          ) : null}
+                        </div>
+                      </label>
+                    );
+                  })
                 )}
               </div>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-              <button onClick={closeAdd} disabled={creating}>Cancel</button>
-              <button onClick={handleCreateTag} disabled={creating}>{creating ? "Creating..." : "Create"}</button>
+            <div className={styles.buttonRow}>
+              <button
+                type="button"
+                className={`${styles.button} ${styles.buttonPrimary}`}
+                onClick={handleCreateTag}
+                disabled={creating}
+              >
+                {creating ? "Creating…" : "Create tag"}
+              </button>
+              <button
+                type="button"
+                className={styles.button}
+                onClick={resetForm}
+                disabled={creating}
+              >
+                Reset
+              </button>
             </div>
           </div>
         </div>
-      )}
+      </section>
     </main>
   );
 }

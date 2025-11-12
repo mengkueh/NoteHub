@@ -1,8 +1,11 @@
 // src/app/TeamNoteTakingApp/note/new/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import styles from "../../home/page.module.css";
+import { useLockBodyScroll } from "../../useLockBodyScroll";
 
 type Tag = { id: number; name: string };
 
@@ -15,51 +18,24 @@ export default function NewNotePage() {
   const [saving, setSaving] = useState(false);
   const [loadingTags, setLoadingTags] = useState(true);
 
+  useLockBodyScroll();
+
   useEffect(() => {
     let mounted = true;
     setLoadingTags(true);
 
     fetch("/api/tags")
       .then(async (r) => {
-        const txt = await r.text();
-        // try parse if it is JSON string
-        try {
-          return { ok: r.ok, body: JSON.parse(txt) as unknown };
-        } catch {
-          // not JSON — return raw text as unknown
-          return { ok: r.ok, body: txt as unknown };
-        }
+        if (!r.ok) throw new Error(await r.text());
+        return r.json();
       })
-      .then(({ ok, body }: { ok: boolean; body: unknown }) => {
+      .then((data: Tag[]) => {
         if (!mounted) return;
-        // Debug: print what backend returned
-        console.log("/api/tags response:", body);
-
-        // If backend returns an array (direct)
-        if (Array.isArray(body)) {
-          // assume Tag[]
-          setTags(body as Tag[]);
-          return;
-        }
-
-        // If backend returned an object, check for fields like { tags: [...] } or { data: [...] }
-        if (typeof body === "object" && body !== null) {
-          const obj = body as Record<string, unknown>;
-          if (Array.isArray(obj.tags)) {
-            setTags(obj.tags as Tag[]);
-            return;
-          }
-          if (Array.isArray(obj.data)) {
-            setTags(obj.data as Tag[]);
-            return;
-          }
-        }
-
-        // fallback: empty array
-        setTags([]);
+        setTags(Array.isArray(data) ? data : []);
       })
       .catch((e) => {
         console.error("fetch /api/tags error:", e);
+        if (!mounted) return;
         setTags([]);
       })
       .finally(() => {
@@ -76,7 +52,10 @@ export default function NewNotePage() {
   }
 
   async function handleCreate() {
-    if (!title.trim() || !content.trim()) return alert("Please fill title and content");
+    if (!title.trim() || !content.trim()) {
+      alert("Please add a title and some content before saving.");
+      return;
+    }
     setSaving(true);
     try {
       const res = await fetch("/api/notes", {
@@ -85,7 +64,6 @@ export default function NewNotePage() {
         body: JSON.stringify({ title: title.trim(), content: content.trim(), tagIds: selected }),
       });
       if (!res.ok) {
-        // type the error shape instead of using `any`
         const e = (await res.json().catch(() => null)) as { error?: string } | null;
         alert(e?.error || "Failed to create");
         return;
@@ -99,53 +77,146 @@ export default function NewNotePage() {
     }
   }
 
+  const selectedTags = useMemo(
+    () => tags.filter((tag) => selected.includes(tag.id)),
+    [tags, selected]
+  );
+
   return (
-    <main style={{ padding: 20, maxWidth: 800, margin: "0 auto" }}>
-      <h1>New Note</h1>
+    <main className={styles.dashboard}>
+      <aside className={styles.sidebar}>
+        <div className={styles.sidebarHeader}>
+          <span>NoteHub</span>
+          <div className={styles.spacer} />
+          <Link href="/TeamNoteTakingApp" className={styles.logoutButton}>
+            Logout
+          </Link>
+        </div>
+        <div className={styles.sidebarActions}>
+          <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
+            <span>📝</span>
+            <span>Dashboard</span>
+          </Link>
+          <Link href="/TeamNoteTakingApp/note/new" className={styles.sidebarButton}>
+            <span>＋</span>
+            <span>New Note</span>
+          </Link>
+          <Link href="/TeamNoteTakingApp/tags" className={styles.sidebarButton}>
+            <span>#</span>
+            <span>Tags</span>
+          </Link>
+          <Link href="/TeamNoteTakingApp/settings" className={styles.sidebarButton}>
+            <span>⚙</span>
+            <span>Settings</span>
+          </Link>
+        </div>
+      </aside>
 
-      <div style={{ marginBottom: 12 }}>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" style={{ width: "100%", padding: 8 }} />
-      </div>
-
-      <div style={{ marginBottom: 12 }}>
-        <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Content" rows={6} style={{ width: "100%", padding: 8 }} />
-      </div>
-
-      <div style={{ marginBottom: 12 }}>
-        <h4>Select tags</h4>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <section className={styles.listPane}>
+        <div className={styles.listHeader}>
+          <div>
+            <p className={styles.sectionTitle}>Tag your note</p>
+            <p className={styles.sectionSubtitle}>Optional – helps organize later</p>
+          </div>
+        </div>
+        <div className={styles.list}>
           {loadingTags ? (
-            <div>Loading tags...</div>
+            <div className={styles.listEmpty}>Loading tags…</div>
           ) : tags.length === 0 ? (
-            <div>No tags available.</div>
+            <div className={styles.listEmpty}>No tags yet. Create tags from the Tags page.</div>
           ) : (
-            tags.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => toggleTag(t.id)}
-                style={{
-                  padding: "6px 10px",
-                  borderRadius: 6,
-                  border: selected.includes(t.id) ? "2px solid #111" : "1px solid #ccc",
-                  background: selected.includes(t.id) ? "#eee" : "#fff",
-                }}
-                type="button"
-              >
-                {t.name}
-              </button>
-            ))
+            tags.map((tag) => {
+              const isSelected = selected.includes(tag.id);
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() => toggleTag(tag.id)}
+                  className={`${styles.tagOption} ${isSelected ? styles.tagOptionActive : ""}`}
+                >
+                  <span className={styles.tagOptionLabel}>{tag.name}</span>
+                  <span className={styles.tagOptionCount}>{isSelected ? "Selected" : "Tap to add"}</span>
+                </button>
+              );
+            })
           )}
         </div>
-      </div>
+      </section>
 
-      <div>
-        <button onClick={handleCreate} disabled={saving}>
-          {saving ? "Creating..." : "Create Note"}
-        </button>
-        <button onClick={() => router.push("/TeamNoteTakingApp/home")} style={{ marginLeft: 8 }}>
-          Cancel
-        </button>
-      </div>
+      <section className={styles.contentPane}>
+        <div className={styles.contentHeader}>
+          <div className={styles.contentTitle}>New Note</div>
+          <div className={styles.row}>
+            <Link href="/TeamNoteTakingApp/home">Back to dashboard</Link>
+          </div>
+        </div>
+
+        <div className={`${styles.contentBody} ${styles.contentScroll}`}>
+          <div className={styles.surface}>
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel} htmlFor="new-note-title">
+                Title
+              </label>
+              <input
+                id="new-note-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className={styles.input}
+                maxLength={120}
+                placeholder="Give your note a title"
+              />
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel} htmlFor="new-note-content">
+                Content
+              </label>
+              <textarea
+                id="new-note-content"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className={styles.textarea}
+                rows={12}
+                placeholder="What do you need to remember?"
+              />
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <span className={styles.fieldLabel}>Selected tags</span>
+              {selectedTags.length === 0 ? (
+                <span className={styles.sectionSubtitle}>You can add tags now or later.</span>
+              ) : (
+                <div className={styles.pillGrid}>
+                  {selectedTags.map((tag) => (
+                    <span key={tag.id} className={styles.pill}>
+                      {tag.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className={styles.buttonRow}>
+            <button
+              type="button"
+              className={`${styles.button} ${styles.buttonPrimary}`}
+              onClick={handleCreate}
+              disabled={saving}
+            >
+              {saving ? "Creating…" : "Create Note"}
+            </button>
+            <button
+              type="button"
+              className={styles.button}
+              onClick={() => router.push("/TeamNoteTakingApp/home")}
+              disabled={saving}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

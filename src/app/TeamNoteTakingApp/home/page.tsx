@@ -268,6 +268,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
+import { useLockBodyScroll } from "../useLockBodyScroll";
 
 type Note = { id: number; title: string; content: string; createdAt?: string };
 
@@ -277,6 +278,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState<Note | null>(null);
+
+  useLockBodyScroll();
 
   // load all notes (initially all)
   useEffect(() => {
