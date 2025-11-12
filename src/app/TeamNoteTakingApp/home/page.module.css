@@ -8,6 +8,10 @@
   grid-template-columns: 260px 380px 1fr;
   background: #1e1e1e; /* dark backdrop like iCloud Notes */
   color: #e5e5e5;
+  font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "SF Pro Display",
+               "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* single straight dividing line across the whole dashboard */
@@ -36,11 +40,37 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 20px;
+  padding: 14px 16px;
   font-weight: 600;
+  font-size: 20px;
   color: #f2f2f2;
   box-sizing: border-box;
   height: var(--header-height);
+}
+
+.logoutButton {
+  margin-right: -6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: #ff453a; /* iOS red tone for destructive action */
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  font-weight: 500;
+  font-size: 16px;
+  font-family: inherit;
+}
+.logoutButton:hover {
+  background: rgba(255, 255, 255, 0.08); /* subtle transparent light box */
+  transform: scale(1.02); /* slight lift on hover */
+}
+.logoutButton:active {
+  background: rgba(255, 255, 255, 0.15); /* brighter when pressed */
+  transform: scale(0.95);
 }
 
 .sidebarActions {
@@ -66,6 +96,10 @@
   background: #2b2b2b;
   border-color: #3a3a3a;
 }
+.sidebarButton:active {
+  background: rgba(255, 255, 255, 0.15); /* brighter when pressed */
+  transform: scale(0.95);
+}
 
 /* Middle column (notes list) */
 .listPane {
@@ -80,7 +114,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 20px;
+  padding: 12px;
   box-sizing: border-box;
   height: var(--header-height);
 }

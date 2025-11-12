@@ -323,7 +323,7 @@ export default function Dashboard() {
         <div className={styles.sidebarHeader}>
           <span>NoteHub</span>
           <div className={styles.spacer} />
-          <Link href="/TeamNoteTakingApp">Logout</Link>
+          <Link href="/TeamNoteTakingApp" className={styles.logoutButton}>Logout</Link>
         </div>
         <div className={styles.sidebarActions}>
           <button className={styles.sidebarButton} onClick={() => router.push("/TeamNoteTakingApp/note/new")}>
