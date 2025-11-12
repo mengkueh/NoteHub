@@ -278,26 +278,68 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState<Note | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [notLoggedIn, setNotLoggedIn] = useState(false);
 
   useLockBodyScroll();
 
   // load all notes (initially all)
   useEffect(() => {
+    let mounted = true;
     setLoading(true);
+    setNotLoggedIn(false);
+    setError(null);
+
     fetch("/api/notes")
       .then(async (res) => {
-        if (!res.ok) throw new Error(await res.text());
+        if (!mounted) return null;
+
+        if (res.status === 401) {
+          // OPTION A: redirect to login immediately:
+          // router.push("/TeamNoteTakingApp/login");
+          // return null;
+
+          // OPTION B: show friendly "not logged in" message in this page:
+          setNotLoggedIn(true);
+          setLoading(false);
+          return null;
+        }
+
+        if (!res.ok) {
+          const txt = await res.text().catch(() => "Failed to load notes");
+          throw new Error(txt);
+        }
+
         return res.json();
       })
-      .then((data: Note[]) => setNotes(data || []))
+      .then((data: Note[] | null) => {
+        if (!mounted || !data) return;
+        setNotes(data);
+      })
       .catch((e) => {
         console.error("load notes err:", e);
-        setNotes([]);
+        if (mounted) setError((e as Error).message || "Unknown error");
       })
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
 
-  const filtered = query.trim()
+    return () => {
+      mounted = false;
+    };
+  }, [router]);
+
+  // If we detected no session, show friendly message and link to login
+  if (notLoggedIn) {
+    return (
+      <main style={{ padding: 20, maxWidth: 800, margin: "0 auto", textAlign: "center"}}>
+        <h1>Trying to key in the url to look inside?</h1>
+        <Link href={`/TeamNoteTakingApp`}><button className="cursor-pointer border-1 px-10 ">Go Back To Login NOW!</button></Link>
+      </main>
+    );
+  }
+
+const filtered = query.trim()
     ? notes.filter((n) =>
         (n.title + " " + n.content).toLowerCase().includes(query.trim().toLowerCase())
       )
@@ -318,6 +360,24 @@ export default function Dashboard() {
       alert("Network error");
     }
   }
+  
+  async function handleLogout() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/logout", { method: "POST" });
+      if (res.ok) {
+        // redirect to login
+        router.push("/TeamNoteTakingApp");
+      } else {
+        alert("Failed to logout");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <main className={styles.dashboard}>
@@ -326,7 +386,7 @@ export default function Dashboard() {
         <div className={styles.sidebarHeader}>
           <span>NoteHub</span>
           <div className={styles.spacer} />
-          <Link href="/TeamNoteTakingApp" className={styles.logoutButton}>Logout</Link>
+          <Link href="/TeamNoteTakingApp" className={styles.logoutButton} onClick={handleLogout}>Logout</Link>
         </div>
         <div className={styles.sidebarActions}>
           <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
