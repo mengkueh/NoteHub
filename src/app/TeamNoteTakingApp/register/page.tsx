@@ -1,97 +1,114 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import styles from './page.module.css';
 
-type Post = { id: string; email: string; password: string };
-
-export default function TeamNoteTakingPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  async function fetchPosts() {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/posts');
-      if (!res.ok) {
-        setPosts([]);
-        setLoading(false);
-        return;
-      }
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : [];
-      setPosts(data);
-    } catch (err) {
-      setPosts([]);
-    }
-    setLoading(false);
-  }
-
-  useEffect(() => { fetchPosts(); }, []);
-
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (isLoading) return;
+    
+    setError('');
+    
     if (!email.trim() || !password.trim()) {
-      alert('Please fill in all fields');
+      setError('Please fill in all fields');
       return;
     }
 
-    const res = await fetch('/api/posts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+    setIsLoading(true);
+    const prevCursor = document.documentElement.style.cursor;
+    document.documentElement.style.cursor = 'wait';
 
-    if (res.ok) {
-      const newPost = await res.json();
-      setPosts(prev => [newPost, ...prev]);
-      setEmail('');
-      setPassword('');
-    } else {
-      alert('Failed to save');
+    try {
+      const res = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (res.ok) {
+        const newPost = await res.json();
+        // Redirect to login page after successful registration
+        router.push('/TeamNoteTakingApp');
+      } else {
+        try {
+          const data = await res.json();
+          setError(data.error || 'Registration failed');
+        } catch {
+          setError('Registration failed');
+        }
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+      console.error('Registration error:', err);
+    } finally {
+      document.documentElement.style.cursor = prevCursor || 'auto';
+      setIsLoading(false);
     }
   }
 
+  const handleBackToLogin = () => {
+    if (isLoading) return;
+    router.push('/TeamNoteTakingApp');
+  };
+
   return (
-    <main style={{ padding: 20, fontFamily: 'sans-serif' }}>
-      <h1>WELCOME!<br/>Team Note Taking App</h1>
-      <form onSubmit={handleSubmit} style={{ marginBottom: 20 }}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          style={{ marginRight: 8 }}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          style={{ marginRight: 8 }}
-        />
-        <button type="submit" className='cursor: pointer'>Register</button>
+    <main className={styles.main}>
+      <div className={styles.card}>
+        <button
+          type="button"
+          onClick={handleBackToLogin}
+          className={styles.backButton}
+          disabled={isLoading}
+          aria-label="Back to login"
+        >
+          ←
+        </button>
+        <div className={styles.headerIcon}>✨</div>
+        <h1 className={styles.title}>Create Your Account</h1>
+
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div>
+            <label className={styles.label}>Email</label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+              required
+              className={styles.input}
+            />
+          </div>
+
+          <div>
+            <label className={styles.label}>Password</label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+              required
+              className={styles.input}
+            />
+          </div>
+
+          <button type="submit" className={styles.primaryButton} disabled={isLoading} aria-busy={isLoading}>
+            Register
+          </button>
+        </form>
         
-      </form>
-
-
-
-
-
-      {/* <h2>Saved Data</h2>
-      {loading ? <p>Loading...</p> :
-        posts.length === 0 ? <p>No data</p> :
-        <ul>
-          {posts.map(p => (
-            <li key={p.id}>
-              <b>{p.email}</b> — {p.password}
-            </li>
-          ))}
-        </ul>
-      } */}
+        {error && (
+          <div className={styles.errorMessage} role="alert">
+            {error}
+          </div>
+        )}
+      </div>
     </main>
   );
 }

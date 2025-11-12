@@ -68,29 +68,58 @@ import styles from "./page.module.css";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
+    setIsLoading(true);
+    const prevCursor = document.documentElement.style.cursor;
+    document.documentElement.style.cursor = "wait";
 
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (res.ok) {
-      router.push("/TeamNoteTakingApp/home");
-    } else {
-      alert("Invalid email or password");
+      if (res.ok) {
+        router.push("/TeamNoteTakingApp/home");
+      } else {
+        alert("Invalid email or password");
+      }
+    } finally {
+      // If navigation didn't occur, restore cursor/loading state
+      document.documentElement.style.cursor = prevCursor || "auto";
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegister = () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    document.documentElement.style.cursor = "wait";
+    try {
+      router.push("/TeamNoteTakingApp/register");
+      // No finally: navigation will unmount this page. If it fails, we restore after a short delay.
+      setTimeout(() => {
+        document.documentElement.style.cursor = "auto";
+        setIsLoading(false);
+      }, 1500);
+    } catch {
+      document.documentElement.style.cursor = "auto";
+      setIsLoading(false);
     }
   };
 
   return (
     <main className={styles.main}>
       <div className={styles.card}>
+        <div className={styles.headerIcon}>🔐</div>
         <h1 className={styles.title}>WELCOME!</h1>
-        <h2 className={styles.subtitle}>Team Note Taking App</h2>
+        <h2 className={styles.subtitle}>Sign In to Your Account</h2>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div>
@@ -117,14 +146,16 @@ export default function LoginPage() {
             />
           </div>
 
-          <button type="submit" className={styles.primaryButton}>
+          <button type="submit" className={styles.primaryButton} disabled={isLoading} aria-busy={isLoading}>
             Login
           </button>
 
           <button
             type="button"
-            onClick={() => router.push("/TeamNoteTakingApp/register")}
+            onClick={handleRegister}
             className={styles.secondaryButton}
+            disabled={isLoading}
+            aria-busy={isLoading}
           >
             Register
           </button>
