@@ -1,0 +1,161 @@
+/* Root layout */
+.dashboard {
+  height: 100vh;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 260px 380px 1fr;
+  background: #1e1e1e; /* dark backdrop like iCloud Notes */
+  color: #e5e5e5;
+}
+
+/* Left sidebar (folders/actions) */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #2a2a2a;
+  background: #181818;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  font-weight: 600;
+  color: #f2f2f2;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.sidebarActions {
+  display: grid;
+  grid-auto-rows: 40px;
+  padding: 12px;
+  gap: 8px;
+}
+
+.sidebarButton {
+  background: #252525;
+  color: #e5e5e5;
+  border: 1px solid #303030;
+  border-radius: 10px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.sidebarButton:hover {
+  background: #2b2b2b;
+  border-color: #3a3a3a;
+}
+
+/* Middle column (notes list) */
+.listPane {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #2a2a2a;
+  background: #1b1b1b;
+}
+
+.listHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.search {
+  flex: 1;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid #303030;
+  background: #121212;
+  color: #e5e5e5;
+  padding: 0 12px;
+  outline: none;
+}
+.search::placeholder {
+  color: #8b8b8b;
+}
+
+.list {
+  overflow: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.noteItem {
+  background: #202020;
+  border: 1px solid #2d2d2d;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 60ms ease;
+}
+.noteItem:hover {
+  background: #242424;
+  border-color: #3a3a3a;
+}
+.noteTitle {
+  font-weight: 700;
+  color: #f0f0f0;
+  margin: 0 0 6px 0;
+}
+.notePreview {
+  color: #b5b5b5;
+  font-size: 13px;
+  line-height: 1.45;
+  max-height: 3.2em;
+  overflow: hidden;
+}
+.noteMeta {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #8e8e8e;
+}
+
+/* Right column (content preview) */
+.contentPane {
+  display: flex;
+  flex-direction: column;
+  background: #121212;
+}
+
+.contentHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #2a2a2a;
+}
+.contentTitle {
+  font-weight: 700;
+  color: #f2f2f2;
+}
+.contentBody {
+  padding: 20px 24px;
+  color: #d8d8d8;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.emptyState {
+  padding: 32px;
+  color: #9a9a9a;
+}
+
+/* Utility */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+
