@@ -1,11 +1,26 @@
 /* Root layout */
 .dashboard {
+  position: relative; /* needed for the pseudo-element line */
+  --header-height: 56px; /* adjust if you want taller/shorter headers */
   height: 100vh;
   width: 100%;
   display: grid;
   grid-template-columns: 260px 380px 1fr;
   background: #1e1e1e; /* dark backdrop like iCloud Notes */
   color: #e5e5e5;
+}
+
+/* single straight dividing line across the whole dashboard */
+.dashboard::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--header-height); /* placed directly after the header */
+  height: 1px;
+  background: #2a2a2a; /* same color as your previous borders */
+  pointer-events: none;
+  z-index: 5;
 }
 
 /* Left sidebar (folders/actions) */
@@ -16,14 +31,16 @@
   background: #181818;
 }
 
+/* unified header sizing — remove per-column border-bottoms (global line used) */
 .sidebarHeader {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 16px;
+  padding: 14px 20px;
   font-weight: 600;
   color: #f2f2f2;
-  border-bottom: 1px solid #2a2a2a;
+  box-sizing: border-box;
+  height: var(--header-height);
 }
 
 .sidebarActions {
@@ -58,12 +75,14 @@
   background: #1b1b1b;
 }
 
+/* match the other headers exactly */
 .listHeader {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px;
-  border-bottom: 1px solid #2a2a2a;
+  padding: 14px 20px;
+  box-sizing: border-box;
+  height: var(--header-height);
 }
 
 .search {
@@ -114,7 +133,8 @@
 }
 .noteMeta {
   margin-top: 8px;
-  font-size: 12px;
+  margin-left: 8px;
+  font-size: 20px;
   color: #8e8e8e;
 }
 
@@ -125,12 +145,14 @@
   background: #121212;
 }
 
+/* match the other headers exactly */
 .contentHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
-  border-bottom: 1px solid #2a2a2a;
+  padding: 14px 20px;
+  box-sizing: border-box;
+  height: var(--header-height);
 }
 .contentTitle {
   font-weight: 700;
@@ -157,5 +179,3 @@
 .spacer {
   flex: 1;
 }
-
-
