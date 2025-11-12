@@ -117,8 +117,9 @@ export default function LoginPage() {
   return (
     <main className={styles.main}>
       <div className={styles.card}>
+        <div className={styles.headerIcon}>🔐</div>
         <h1 className={styles.title}>WELCOME!</h1>
-        <h2 className={styles.subtitle}>Team Note Taking App</h2>
+        <h2 className={styles.subtitle}>Sign In to Your Account</h2>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div>
