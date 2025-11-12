@@ -146,9 +146,6 @@ export default function NewNotePage() {
       <section className={styles.contentPane}>
         <div className={styles.contentHeader}>
           <div className={styles.contentTitle}>New Note</div>
-          <div className={styles.row}>
-            <Link href="/TeamNoteTakingApp/home">Back to dashboard</Link>
-          </div>
         </div>
 
         <div className={`${styles.contentBody} ${styles.contentScroll}`}>

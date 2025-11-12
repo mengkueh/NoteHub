@@ -329,18 +329,22 @@ export default function Dashboard() {
           <Link href="/TeamNoteTakingApp" className={styles.logoutButton}>Logout</Link>
         </div>
         <div className={styles.sidebarActions}>
-          <button className={styles.sidebarButton} onClick={() => router.push("/TeamNoteTakingApp/note/new")}>
+          <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
+            <span>📝</span>
+            <span>Dashboard</span>
+          </Link>
+          <Link href="/TeamNoteTakingApp/note/new" className={styles.sidebarButton}>
             <span>＋</span>
             <span>New Note</span>
-          </button>
-          <button className={styles.sidebarButton} onClick={() => router.push("/TeamNoteTakingApp/tags")}>
+          </Link>
+          <Link href="/TeamNoteTakingApp/tags" className={styles.sidebarButton}>
             <span>#</span>
             <span>Tags</span>
-          </button>
-          <button className={styles.sidebarButton} onClick={() => router.push("/TeamNoteTakingApp/settings")}>
+          </Link>
+          <Link href="/TeamNoteTakingApp/settings" className={styles.sidebarButton}>
             <span>⚙</span>
             <span>Settings</span>
-          </button>
+          </Link>
         </div>
       </aside>
 
@@ -356,7 +360,7 @@ export default function Dashboard() {
         </div>
         <div className={styles.list}>
           {loading ? (
-            <div className={styles.noteMeta}>Loading…</div>
+            <div className={styles.noteMeta}>Loading notes…</div>
           ) : filtered.length === 0 ? (
             <div className={styles.noteMeta}>No notes</div>
           ) : (
@@ -398,10 +402,12 @@ export default function Dashboard() {
           )}
         </div>
         <div className={styles.contentBody}>
-          {active ? (
-            active.content
-          ) : (
+          {!active ? (
             <div className={styles.emptyState}>Choose a note from the list to view its contents.</div>
+          ) : (
+            <div className={styles.surface}>
+                <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{active.content || "No content"}</div>
+            </div>
           )}
         </div>
       </section>

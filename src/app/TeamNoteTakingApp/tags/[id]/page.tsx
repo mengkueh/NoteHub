@@ -34,7 +34,7 @@ export default function TagNotesPage() {
         if (!mounted) return;
         const safeNotes = Array.isArray(data) ? data : [];
         setNotes(safeNotes);
-        setActive((prev) => prev && safeNotes.some((n) => n.id === prev.id) ? prev : safeNotes[0] ?? null);
+        setActive(null);
       })
       .catch((e) => {
         console.error("load tagged notes err:", e);
@@ -145,14 +145,7 @@ export default function TagNotesPage() {
             <div className={styles.emptyState}>Choose a note from the list to view its contents.</div>
           ) : (
             <div className={styles.surface}>
-              <div className={styles.fieldGroup}>
-                <span className={styles.fieldLabel}>Title</span>
-                <div>{active.title || "Untitled note"}</div>
-              </div>
-              <div className={styles.fieldGroup}>
-                <span className={styles.fieldLabel}>Content</span>
                 <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{active.content || "No content"}</div>
-              </div>
             </div>
           )}
         </div>

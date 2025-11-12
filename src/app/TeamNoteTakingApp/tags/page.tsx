@@ -181,10 +181,6 @@ export default function TagsPage() {
       <section className={styles.contentPane}>
         <div className={styles.contentHeader}>
           <div className={styles.contentTitle}>Create a tag</div>
-          <div className={styles.row}>
-            <Link href="/TeamNoteTakingApp/home">Dashboard</Link>
-            <Link href="/TeamNoteTakingApp/note/new">New note</Link>
-          </div>
         </div>
 
         <div className={`${styles.contentBody} ${styles.contentScroll}`}>
