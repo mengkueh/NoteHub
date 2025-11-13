@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import styles from "../../home/page.module.css";
 import { useLockBodyScroll } from "../../useLockBodyScroll";
+import ShareByEmail from "@/components/ShareByEmail";
 
 type Tag = { id: number; name: string };
 type NoteDetail = { id: number; title: string; content: string; tags: { tag: Tag }[] };
@@ -142,6 +143,13 @@ export default function EditNotePage() {
             <span>⚙</span>
             <span>Settings</span>
           </Link>
+          {/* Invite button (client) */}
+        <ShareByEmail noteId={noteId} onDone={(accesses) => {
+          // onDone runs in client — server rendered list won't auto-refresh.
+          // You can choose to refetch via client-side API, or do a full page refresh:
+          // window.location.reload();
+          console.log("new accesses:", accesses);
+        }} />
         </div>
       </aside>
 

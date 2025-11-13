@@ -1,10 +1,9 @@
 // src/app/api/notes/[id]/route.ts
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 
-/** get session helper (await cookies()) */
+/** get session helper */
 async function getSessionFromCookie() {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get("session")?.value ?? null;
@@ -17,22 +16,18 @@ async function getSessionFromCookie() {
 
 /** small runtime type helpers */
 function isPromiseLike(x: unknown): x is Promise<unknown> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return !!x && typeof (x as any).then === "function";
 }
 
 async function resolveParams(params: unknown): Promise<{ id: string } | null> {
   if (!params) return null;
-  if (isPromiseLike(params)) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (await params) as { id: string } | null;
-  }
+  if (isPromiseLike(params)) return (await params) as { id: string } | null;
   return params as { id: string } | null;
 }
 
 /**
  * GET /api/notes/[id]
- * returns note (only if belongs to current user)
+ * returns note if owner or shared with user
  */
 export async function GET(_req: Request, context: { params: unknown }) {
   try {
@@ -40,17 +35,19 @@ export async function GET(_req: Request, context: { params: unknown }) {
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const maybeParams = await resolveParams(context.params);
-    if (!maybeParams || !maybeParams.id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
-
+    if (!maybeParams?.id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
     const id = Number(maybeParams.id);
     if (Number.isNaN(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
 
     const note = await prisma.note.findUnique({
       where: { id },
-      include: { tags: { include: { tag: true } } },
+      include: { tags: { include: { tag: true } }, accesses: true },
     });
+    if (!note) return NextResponse.json({ error: "Note not found" }, { status: 404 });
 
-    if (!note || note.userId !== session.userId) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const isOwner = note.userId === session.userId;
+    const access = note.accesses.find(a => a.userId === session.userId);
+    if (!isOwner && !access) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     return NextResponse.json(note);
   } catch (err) {
@@ -61,7 +58,7 @@ export async function GET(_req: Request, context: { params: unknown }) {
 
 /**
  * PUT /api/notes/[id]
- * body: { title?: string, content?: string, tagIds?: (number|string)[] }
+ * updates note (owner or editor)
  */
 export async function PUT(req: Request, context: { params: unknown }) {
   try {
@@ -69,46 +66,35 @@ export async function PUT(req: Request, context: { params: unknown }) {
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const maybeParams = await resolveParams(context.params);
-    if (!maybeParams || !maybeParams.id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    if (!maybeParams?.id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
     const id = Number(maybeParams.id);
     if (Number.isNaN(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
 
-    const note = await prisma.note.findUnique({ where: { id } });
-    if (!note || note.userId !== session.userId) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const note = await prisma.note.findUnique({ where: { id }, include: { accesses: true } });
+    if (!note) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    const raw = (await req.json().catch(() => ({} as unknown))) as unknown;
-    // extract updates
-    const title =
-      typeof raw === "object" && raw !== null && "title" in (raw as Record<string, unknown>) && typeof (raw as any).title === "string"
-        ? (raw as any).title
-        : undefined;
-    const content =
-      typeof raw === "object" && raw !== null && "content" in (raw as Record<string, unknown>) && typeof (raw as any).content === "string"
-        ? (raw as any).content
-        : undefined;
+    const isOwner = note.userId === session.userId;
+    const access = note.accesses.find(a => a.userId === session.userId);
 
-    const rawTagIds = typeof raw === "object" && raw !== null && "tagIds" in (raw as Record<string, unknown>) ? (raw as any).tagIds : undefined;
-    let tagIds: number[] = [];
-    if (Array.isArray(rawTagIds)) {
-      tagIds = rawTagIds.map((v) => Number(v)).filter((n) => !Number.isNaN(n));
-    }
+    if (!isOwner && access?.role !== "editor") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const updateData: Record<string, unknown> = {};
-    if (typeof title === "string" && title.trim() !== "") updateData.title = title.trim();
-    if (typeof content === "string" && content.trim() !== "") updateData.content = content.trim();
+    const raw = (await req.json().catch(() => ({}))) as any;
+
+    const updateData: any = {};
+    if (typeof raw.title === "string" && raw.title.trim() !== "") updateData.title = raw.title.trim();
+    if (typeof raw.content === "string" && raw.content.trim() !== "") updateData.content = raw.content.trim();
 
     if (Object.keys(updateData).length > 0) {
       await prisma.note.update({ where: { id }, data: updateData });
     }
 
-    if (tagIds.length > 0) {
-      // only attach tags owned by user
-      const ownedTags = await prisma.tag.findMany({ where: { id: { in: tagIds }, userId: session.userId }, select: { id: true } });
-      const ownedIds = ownedTags.map((t) => t.id);
-
+    if (Array.isArray(raw.tagIds) && raw.tagIds.length > 0) {
+      const tagIds = raw.tagIds.map((v: any) => Number(v)).filter((n: number) => !Number.isNaN(n));
+      const ownedTags = await prisma.tag.findMany({ where: { id: { in: tagIds }, userId: note.userId }, select: { id: true } });
+      const ownedIds = ownedTags.map(t => t.id);
       await prisma.$transaction([
         prisma.noteTag.deleteMany({ where: { noteId: id } }),
-        prisma.noteTag.createMany({ data: ownedIds.map((tid) => ({ noteId: id, tagId: tid })), skipDuplicates: true }),
+        prisma.noteTag.createMany({ data: ownedIds.map(tid => ({ noteId: id, tagId: tid })), skipDuplicates: true }),
       ]);
     }
 
@@ -122,7 +108,7 @@ export async function PUT(req: Request, context: { params: unknown }) {
 
 /**
  * DELETE /api/notes/[id]
- * body optional; deletes note if owned by user
+ * only owner can delete
  */
 export async function DELETE(_req: Request, context: { params: unknown }) {
   try {
@@ -130,17 +116,55 @@ export async function DELETE(_req: Request, context: { params: unknown }) {
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const maybeParams = await resolveParams(context.params);
-    if (!maybeParams || !maybeParams.id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    if (!maybeParams?.id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
     const id = Number(maybeParams.id);
     if (Number.isNaN(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
 
     const note = await prisma.note.findUnique({ where: { id } });
-    if (!note || note.userId !== session.userId) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!note || note.userId !== session.userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     await prisma.note.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("DELETE /api/notes/[id] error:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
+/**
+ * POST /api/notes/[id]/invite
+ * body: { email: string, role?: "viewer" | "editor" }
+ * only owner can invite
+ */
+export async function POSTInvite(req: Request, context: { params: unknown }) {
+  try {
+    const session = await getSessionFromCookie();
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const maybeParams = await resolveParams(context.params);
+    if (!maybeParams?.id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    const noteId = Number(maybeParams.id);
+
+    const body = await req.json();
+    const { email, role } = body;
+    if (!email) return NextResponse.json({ error: "Missing email" }, { status: 400 });
+
+    const note = await prisma.note.findUnique({ where: { id: noteId } });
+    if (!note) return NextResponse.json({ error: "Note not found" }, { status: 404 });
+    if (note.userId !== session.userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    const userToInvite = await prisma.user.findUnique({ where: { email } });
+    if (!userToInvite) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+    await prisma.noteAccess.upsert({
+      where: { noteId_userId: { noteId, userId: userToInvite.id } },
+      create: { noteId, userId: userToInvite.id, role: role ?? "editor" },
+      update: { role: role ?? "editor" },
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("POSTInvite /api/notes/[id] error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

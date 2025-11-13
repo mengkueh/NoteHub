@@ -11,16 +11,38 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+
 model User {
-  id        String    @id @default(cuid())
-  email     String?   @unique
-  password  String?
-  notes     Note[]
-  sessions  Session[]
-  tags      Tag[] // <-- add this relation field
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id          String       @id @default(cuid())
+  email       String       @unique
+  password    String?
+  displayName String?
+  avatarUrl   String?
+
+  notes       Note[]        // notes owned
+  accesses    NoteAccess[]  // notes this user has access to
+  sessions    Session[]
+  tags        Tag[]         // <-- add this so User <-> Tag relations are symmetric
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
+
+
+model NoteAccess {
+  id       Int     @id @default(autoincrement())
+  noteId   Int
+  userId   String
+  role     String  @default("editor") // "viewer" | "editor" | "owner"
+
+  note     Note    @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([noteId, userId])   // avoid duplicates
+  @@index([userId])
+  @@index([noteId])
+}
+
 
 model Note {
   id        Int       @id @default(autoincrement())
@@ -30,6 +52,8 @@ model Note {
   updatedAt DateTime  @updatedAt
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  accesses  NoteAccess[]  // <-- add this so Note <-> NoteAccess are symmetric
   tags      NoteTag[]
 }
 
@@ -40,7 +64,7 @@ model Tag {
   user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   notes  NoteTag[]
 
-  @@unique([userId, name]) // ensure unique tag names per user
+  @@unique([userId, name])
 }
 
 model NoteTag {

@@ -37,8 +37,13 @@ export async function GET(req: Request) {
     }
 
     const notes = await prisma.note.findMany({
-      where: { userId: session.userId },
-      select: { id: true, title: true, content: true, createdAt: true },
+      where: {
+        OR: [
+          { userId: session.userId }, // owner
+          { accesses: { some: { userId: session.userId } } }, // collaborator
+        ],
+      },
+      select: { id: true, title: true, content: true, createdAt: true, userId: true },
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(notes);
