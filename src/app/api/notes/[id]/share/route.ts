@@ -1,11 +1,11 @@
 // app/api/notes/[id]/share/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionFromCookie } from "@/lib/auth";
 
 type ReqBody = { email?: string; role?: string };
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getSessionFromCookie();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -13,7 +13,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const noteId = Number(params.id);
     if (Number.isNaN(noteId)) return NextResponse.json({ error: "Invalid note id" }, { status: 400 });
 
-    const body = (await req.json().catch(() => ({} as ReqBody))) ?? {};
+    const body: ReqBody = (await req.json().catch(() => ({}))) ?? {};
     const email = (body.email ?? "").toString().trim().toLowerCase();
     const role = (body.role ?? "editor").toString();
 
@@ -45,10 +45,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       create: { noteId, userId: invitee.id, role },
     });
 
-    // optional: return list of current access entries for this note
+    // 5) return list of current access entries for this note
     const accesses = await prisma.noteAccess.findMany({
       where: { noteId },
-      select: { id: true, userId: true, role: true, user: { select: { email: true, displayName: true } } },
+      select: {
+        id: true,
+        userId: true,
+        role: true,
+        user: { select: { email: true, displayName: true } },
+      },
     });
 
     return NextResponse.json({ ok: true, accesses }, { status: 200 });
