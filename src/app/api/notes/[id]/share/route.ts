@@ -1,23 +1,22 @@
 // app/api/notes/[id]/share/route.ts
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionFromCookie } from "@/lib/auth";
 
 type ReqBody = { email?: string; role?: string };
 
-export async function POST(req: NextRequest, context: { params: any }) {
+export async function POST(
+  req: NextRequest,
+  context: { params: { id: string } | Promise<{ id: string }> }
+) {
   try {
-    // resolve params safely (handles both Promise and plain object)
-    const maybeParams = await Promise.resolve(context.params);
-    const idStr = maybeParams?.id;
-    const noteId = Number(idStr);
-    if (!idStr || Number.isNaN(noteId)) {
-      return NextResponse.json({ error: "Invalid note id" }, { status: 400 });
-    }
-
+    // ensure we await params in case it's a Promise in the typing
+    const params = (await context.params) as { id: string };
     const session = await getSessionFromCookie();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const noteId = Number(params.id);
+    if (Number.isNaN(noteId)) return NextResponse.json({ error: "Invalid note id" }, { status: 400 });
 
     const body: ReqBody = (await req.json().catch(() => ({}))) ?? {};
     const email = (body.email ?? "").toString().trim().toLowerCase();
