@@ -4,6 +4,45 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 
+/**
+ * POST /api/notes/[id]/invite
+ * body: { email: string, role?: "viewer" | "editor" }
+ * only owner can invite
+ */
+export async function POSTInvite(req: Request, context: { params: unknown }) {
+  try {
+    const session = await getSessionFromCookie();
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const maybeParams = await resolveParams(context.params);
+    if (!maybeParams?.id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    const noteId = Number(maybeParams.id);
+
+    const body = await req.json();
+    const { email, role } = body;
+    if (!email) return NextResponse.json({ error: "Missing email" }, { status: 400 });
+
+    const note = await prisma.note.findUnique({ where: { id: noteId } });
+    if (!note) return NextResponse.json({ error: "Note not found" }, { status: 404 });
+    if (note.userId !== session.userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    const userToInvite = await prisma.user.findUnique({ where: { email } });
+    if (!userToInvite) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+    await prisma.noteAccess.upsert({
+      where: { noteId_userId: { noteId, userId: userToInvite.id } },
+      create: { noteId, userId: userToInvite.id, role: role ?? "editor" },
+      update: { role: role ?? "editor" },
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("POSTInvite /api/notes/[id] error:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
+
 /** get session helper */
 async function getSessionFromCookie() {
   const cookieStore = await cookies();
@@ -132,40 +171,3 @@ export async function DELETE(_req: Request, context: { params: unknown }) {
   }
 }
 
-/**
- * POST /api/notes/[id]/invite
- * body: { email: string, role?: "viewer" | "editor" }
- * only owner can invite
- */
-export async function POSTInvite(req: Request, context: { params: unknown }) {
-  try {
-    const session = await getSessionFromCookie();
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const maybeParams = await resolveParams(context.params);
-    if (!maybeParams?.id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
-    const noteId = Number(maybeParams.id);
-
-    const body = await req.json();
-    const { email, role } = body;
-    if (!email) return NextResponse.json({ error: "Missing email" }, { status: 400 });
-
-    const note = await prisma.note.findUnique({ where: { id: noteId } });
-    if (!note) return NextResponse.json({ error: "Note not found" }, { status: 404 });
-    if (note.userId !== session.userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-
-    const userToInvite = await prisma.user.findUnique({ where: { email } });
-    if (!userToInvite) return NextResponse.json({ error: "User not found" }, { status: 404 });
-
-    await prisma.noteAccess.upsert({
-      where: { noteId_userId: { noteId, userId: userToInvite.id } },
-      create: { noteId, userId: userToInvite.id, role: role ?? "editor" },
-      update: { role: role ?? "editor" },
-    });
-
-    return NextResponse.json({ ok: true });
-  } catch (err) {
-    console.error("POSTInvite /api/notes/[id] error:", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
-  }
-}
