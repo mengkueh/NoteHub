@@ -1,47 +1,7 @@
-// src/app/api/notes/[id]/route.ts
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
-
-/**
- * POST /api/notes/[id]/invite
- * body: { email: string, role?: "viewer" | "editor" }
- * only owner can invite
- */
-export async function POSTInvite(req: Request, context: { params: unknown }) {
-  try {
-    const session = await getSessionFromCookie();
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const maybeParams = await resolveParams(context.params);
-    if (!maybeParams?.id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
-    const noteId = Number(maybeParams.id);
-
-    const body = await req.json();
-    const { email, role } = body;
-    if (!email) return NextResponse.json({ error: "Missing email" }, { status: 400 });
-
-    const note = await prisma.note.findUnique({ where: { id: noteId } });
-    if (!note) return NextResponse.json({ error: "Note not found" }, { status: 404 });
-    if (note.userId !== session.userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-
-    const userToInvite = await prisma.user.findUnique({ where: { email } });
-    if (!userToInvite) return NextResponse.json({ error: "User not found" }, { status: 404 });
-
-    await prisma.noteAccess.upsert({
-      where: { noteId_userId: { noteId, userId: userToInvite.id } },
-      create: { noteId, userId: userToInvite.id, role: role ?? "editor" },
-      update: { role: role ?? "editor" },
-    });
-
-    return NextResponse.json({ ok: true });
-  } catch (err) {
-    console.error("POSTInvite /api/notes/[id] error:", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
-  }
-}
-
 
 /** get session helper */
 async function getSessionFromCookie() {
@@ -58,7 +18,6 @@ async function getSessionFromCookie() {
 function isPromiseLike(x: unknown): x is Promise<unknown> {
   return !!x && typeof (x as any).then === "function";
 }
-
 async function resolveParams(params: unknown): Promise<{ id: string } | null> {
   if (!params) return null;
   if (isPromiseLike(params)) return (await params) as { id: string } | null;
@@ -67,28 +26,28 @@ async function resolveParams(params: unknown): Promise<{ id: string } | null> {
 
 /**
  * GET /api/notes/[id]
- * returns note if owner or shared with user
  */
-export async function GET(_req: Request, context: { params: { id: string } }) {
+export async function GET(_req: Request, context: any) {
   try {
     const session = await getSessionFromCookie();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const noteId = Number(context.params.id);
+    const maybeParams = await resolveParams(context.params);
+    if (!maybeParams?.id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    const noteId = Number(maybeParams.id);
     if (Number.isNaN(noteId)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
 
     const note = await prisma.note.findUnique({
       where: { id: noteId },
       include: {
-        user: { select: { id: true, email: true, displayName: true } }, // owner
-        accesses: { include: { user: { select: { id: true, email: true, displayName: true } } } }, // collaborators
-        tags: false,
+        user: { select: { id: true, email: true, displayName: true } },
+        accesses: { include: { user: { select: { id: true, email: true, displayName: true } } } },
+        tags: { include: { tag: true } },
       },
     });
 
     if (!note) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    // permission check: owner or collaborator
     const isOwner = note.userId === session.userId;
     const isCollaborator = note.accesses.some((a) => a.userId === session.userId);
     if (!isOwner && !isCollaborator) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -99,11 +58,11 @@ export async function GET(_req: Request, context: { params: { id: string } }) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+
 /**
  * PUT /api/notes/[id]
- * updates note (owner or editor)
  */
-export async function PUT(req: Request, context: { params: unknown }) {
+export async function PUT(req: Request, context: any) {
   try {
     const session = await getSessionFromCookie();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -117,7 +76,7 @@ export async function PUT(req: Request, context: { params: unknown }) {
     if (!note) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const isOwner = note.userId === session.userId;
-    const access = note.accesses.find(a => a.userId === session.userId);
+    const access = note.accesses.find((a: any) => a.userId === session.userId);
 
     if (!isOwner && access?.role !== "editor") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -134,10 +93,10 @@ export async function PUT(req: Request, context: { params: unknown }) {
     if (Array.isArray(raw.tagIds) && raw.tagIds.length > 0) {
       const tagIds = raw.tagIds.map((v: any) => Number(v)).filter((n: number) => !Number.isNaN(n));
       const ownedTags = await prisma.tag.findMany({ where: { id: { in: tagIds }, userId: note.userId }, select: { id: true } });
-      const ownedIds = ownedTags.map(t => t.id);
+      const ownedIds = ownedTags.map((t) => t.id);
       await prisma.$transaction([
         prisma.noteTag.deleteMany({ where: { noteId: id } }),
-        prisma.noteTag.createMany({ data: ownedIds.map(tid => ({ noteId: id, tagId: tid })), skipDuplicates: true }),
+        prisma.noteTag.createMany({ data: ownedIds.map((tid) => ({ noteId: id, tagId: tid })), skipDuplicates: true }),
       ]);
     }
 
@@ -151,9 +110,8 @@ export async function PUT(req: Request, context: { params: unknown }) {
 
 /**
  * DELETE /api/notes/[id]
- * only owner can delete
  */
-export async function DELETE(_req: Request, context: { params: unknown }) {
+export async function DELETE(_req: Request, context: any) {
   try {
     const session = await getSessionFromCookie();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -173,4 +131,3 @@ export async function DELETE(_req: Request, context: { params: unknown }) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
-

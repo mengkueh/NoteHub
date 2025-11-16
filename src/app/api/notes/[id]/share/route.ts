@@ -1,63 +1,90 @@
-// app/api/notes/[id]/share/route.ts
-import { NextRequest, NextResponse } from "next/server";
+// src/app/api/notes/[id]/share/route.ts
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { getSessionFromCookie } from "@/lib/auth";
 
-type ReqBody = { email?: string; role?: string };
-
-export async function POST(
-  req: NextRequest,
-  context: { params: { id: string } | Promise<{ id: string }> }
-) {
+/** helper to get session from cookie (server-side) */
+async function getSessionFromCookie() {
   try {
-    // ensure we await params in case it's a Promise in the typing
-    const params = (await context.params) as { id: string };
+    const cookieStore = await cookies();
+    const sessionId = cookieStore.get("session")?.value ?? null;
+    if (!sessionId) return null;
+    const session = await prisma.session.findUnique({ where: { id: sessionId } });
+    if (!session) return null;
+    if (session.expiresAt < new Date()) return null;
+    return session;
+  } catch (err) {
+    console.error("getSessionFromCookie error:", err);
+    return null;
+  }
+}
+
+/**
+ * POST /api/notes/[id]/share
+ * body: { email: string, role?: "viewer" | "editor" }
+ *
+ * Requirements:
+ * - requester must be owner OR have editor role (you can tighten this as you like)
+ * - invitee must be an existing user (this matches your "no email sending" requirement)
+ * - upsert NoteAccess so the invitee gets access immediately
+ */
+export async function POST(req: Request, context: any) {
+  try {
     const session = await getSessionFromCookie();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const noteId = Number(params.id);
+    // get note id from route params (be defensive: params may be promise-like)
+    const maybeParams = context?.params;
+    const resolvedParams = typeof maybeParams?.then === "function" ? await maybeParams : maybeParams;
+    const idStr = resolvedParams?.id ?? resolvedParams?.noteId ?? null;
+    if (!idStr) return NextResponse.json({ error: "Missing note id" }, { status: 400 });
+
+    const noteId = Number(idStr);
     if (Number.isNaN(noteId)) return NextResponse.json({ error: "Invalid note id" }, { status: 400 });
 
-    const body: ReqBody = (await req.json().catch(() => ({}))) ?? {};
-    const email = (body.email ?? "").toString().trim().toLowerCase();
-    const role = (body.role ?? "editor").toString();
+    // parse body
+    const body = (await req.json().catch(() => ({} as any))) as { email?: string; role?: string } | any;
+    const emailRaw = (body?.email ?? "").toString().trim().toLowerCase();
+    const role = (body?.role ?? "editor").toString();
 
-    if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
+    if (!emailRaw) return NextResponse.json({ error: "Email required" }, { status: 400 });
 
-    // 1) check note exists
+    // fetch note and check permission
     const note = await prisma.note.findUnique({ where: { id: noteId } });
     if (!note) return NextResponse.json({ error: "Note not found" }, { status: 404 });
 
-    // 2) permission: only owner or editor can share
+    // requester must be owner OR editor on the note
+    const isOwner = session.userId === note.userId;
     const requesterAccess = await prisma.noteAccess.findUnique({
       where: { noteId_userId: { noteId, userId: session.userId } },
     });
 
-    if (session.userId !== note.userId && (!requesterAccess || requesterAccess.role !== "editor")) {
+    if (!isOwner && (!requesterAccess || requesterAccess.role !== "editor")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // 3) find user by email
-    const invitee = await prisma.user.findUnique({ where: { email } });
+    // find the invitee user by email (existing user required)
+    const invitee = await prisma.user.findUnique({ where: { email: emailRaw } });
     if (!invitee) {
       return NextResponse.json({ error: "User with that email not found" }, { status: 404 });
     }
 
-    // 4) upsert NoteAccess (create or update role)
+    // upsert NoteAccess for the invitee (create or update role)
     await prisma.noteAccess.upsert({
       where: { noteId_userId: { noteId, userId: invitee.id } },
       update: { role },
       create: { noteId, userId: invitee.id, role },
     });
 
-    // 5) return list of current access entries for this note
+    // return current accesses for the note (with user email/info)
     const accesses = await prisma.noteAccess.findMany({
       where: { noteId },
       select: {
         id: true,
-        userId: true,
         role: true,
-        user: { select: { email: true, displayName: true } },
+        userId: true,
+        user: { select: { id: true, email: true, displayName: true } },
       },
     });
 
