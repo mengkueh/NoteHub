@@ -9,12 +9,22 @@ import { useLockBodyScroll } from "../../useLockBodyScroll";
 import ShareByEmail from "@/components/ShareByEmail";
 
 type Tag = { id: number; name: string };
-type NoteDetail = { id: number; title: string; content: string; tags: { tag: Tag }[] };
+type Access = { id: number; role: string; user: { id: string; email: string; displayName?: string } };
+type NoteDetail = {
+  id: number;
+  title: string;
+  content: string;
+  tags: { tag: Tag }[];
+  user?: { id: string; email: string; displayName?: string };
+  accesses?: Access[];
+};
 
 export default function EditNotePage() {
-  const { id } = useParams();
+  const params = useParams();
   const router = useRouter();
-  const noteId = Array.isArray(id) ? id[0] : id ?? "";
+  const rawId = params?.id;
+  const noteId = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
+
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [allTags, setAllTags] = useState<Tag[]>([]);
@@ -23,9 +33,11 @@ export default function EditNotePage() {
   const [loadingTags, setLoadingTags] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [noteDetail, setNoteDetail] = useState<NoteDetail | null>(null);
 
   useLockBodyScroll();
 
+  // load tags (for the tag selector)
   useEffect(() => {
     let mounted = true;
     setLoadingTags(true);
@@ -53,6 +65,7 @@ export default function EditNotePage() {
     };
   }, []);
 
+  // load note (including owner and accesses)
   useEffect(() => {
     if (!noteId) return;
     let mounted = true;
@@ -61,24 +74,29 @@ export default function EditNotePage() {
 
     fetch(`/api/notes/${noteId}`)
       .then(async (res) => {
-        if (!res.ok) throw new Error(await res.text());
+        if (!res.ok) {
+          const txt = await res.text().catch(() => "Failed to load note");
+          throw new Error(txt);
+        }
         return res.json();
       })
       .then((data: NoteDetail) => {
         if (!mounted) return;
+        setNoteDetail(data);
         setTitle(data.title ?? "");
         setContent(data.content ?? "");
         const tagIds = (data.tags ?? []).map((x) => x.tag.id);
         setSelected(tagIds);
       })
       .catch((err) => {
-        console.error(err);
+        console.error("load note err:", err);
         if (!mounted) return;
         setError("Failed to load note.");
       })
       .finally(() => {
         if (mounted) setLoadingNote(false);
       });
+
     return () => {
       mounted = false;
     };
@@ -102,6 +120,9 @@ export default function EditNotePage() {
         alert(e?.error || "Failed to save");
         return;
       }
+      // refetch updated note details after save
+      const updated = await fetch(`/api/notes/${noteId}`).then((r) => r.json());
+      setNoteDetail(updated);
       router.push("/TeamNoteTakingApp/home");
     } catch (err) {
       console.error(err);
@@ -111,10 +132,24 @@ export default function EditNotePage() {
     }
   }
 
-  const selectedTags = useMemo(
-    () => allTags.filter((tag) => selected.includes(tag.id)),
-    [allTags, selected]
-  );
+  const selectedTags = useMemo(() => allTags.filter((tag) => selected.includes(tag.id)), [allTags, selected]);
+
+  // derive owner & collaborators safely
+  const ownerEmail = noteDetail?.user?.email ?? "Unknown";
+  const collaborators = (noteDetail?.accesses ?? [])
+    .map((a) => a.user?.email ?? null)
+    .filter((e) => e && e !== ownerEmail) as string[];
+
+  // refresh accesses (call after invite)
+  async function refreshNote() {
+    if (!noteId) return;
+    try {
+      const data = await fetch(`/api/notes/${noteId}`).then((r) => r.json());
+      setNoteDetail(data);
+    } catch (err) {
+      console.error("refresh note failed", err);
+    }
+  }
 
   return (
     <main className={styles.dashboard}>
@@ -143,13 +178,16 @@ export default function EditNotePage() {
             <span>⚙</span>
             <span>Settings</span>
           </Link>
-          {/* Invite button (client) */}
-        <ShareByEmail noteId={noteId} onDone={(accesses) => {
-          // onDone runs in client — server rendered list won't auto-refresh.
-          // You can choose to refetch via client-side API, or do a full page refresh:
-          // window.location.reload();
-          console.log("new accesses:", accesses);
-        }} />
+
+          {/* Invite button / component: ShareByEmail should POST to /api/notes/[id]/share or similar */}
+          <ShareByEmail
+            noteId={noteId}
+            onDone={async (accesses?: unknown) => {
+              // after invite completes, refresh note to show new collaborators
+              await refreshNote();
+              console.log("invited, accesses:", accesses);
+            }}
+          />
         </div>
       </aside>
 
@@ -177,9 +215,7 @@ export default function EditNotePage() {
                   className={`${styles.tagOption} ${isSelected ? styles.tagOptionActive : ""}`}
                 >
                   <span className={styles.tagOptionLabel}>{tag.name}</span>
-                  <span className={styles.tagOptionCount}>
-                    {isSelected ? "Selected" : "Tap to add"}
-                  </span>
+                  <span className={styles.tagOptionCount}>{isSelected ? "Selected" : "Tap to add"}</span>
                 </button>
               );
             })
@@ -200,6 +236,15 @@ export default function EditNotePage() {
           ) : (
             <>
               <div className={styles.surface}>
+                <div style={{ marginBottom: 12 }}>
+                  <strong>Owner:</strong> <span>{ownerEmail}</span>
+                </div>
+
+                <div style={{ marginBottom: 12 }}>
+                  <strong>Collaborators:</strong>{" "}
+                  {collaborators.length === 0 ? <span>None</span> : <span>{collaborators.join(", ")}</span>}
+                </div>
+
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel} htmlFor="note-title">
                     Title
@@ -245,20 +290,10 @@ export default function EditNotePage() {
               </div>
 
               <div className={styles.buttonRow}>
-                <button
-                  type="button"
-                  className={`${styles.button} ${styles.buttonPrimary}`}
-                  onClick={handleSave}
-                  disabled={saving}
-                >
+                <button type="button" className={`${styles.button} ${styles.buttonPrimary}`} onClick={handleSave} disabled={saving}>
                   {saving ? "Saving…" : "Save Note"}
                 </button>
-                <button
-                  type="button"
-                  className={styles.button}
-                  onClick={() => router.push("/TeamNoteTakingApp/home")}
-                  disabled={saving}
-                >
+                <button type="button" className={styles.button} onClick={() => router.push("/TeamNoteTakingApp/home")} disabled={saving}>
                   Cancel
                 </button>
               </div>

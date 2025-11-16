@@ -69,25 +69,29 @@ async function resolveParams(params: unknown): Promise<{ id: string } | null> {
  * GET /api/notes/[id]
  * returns note if owner or shared with user
  */
-export async function GET(_req: Request, context: { params: unknown }) {
+export async function GET(_req: Request, context: { params: { id: string } }) {
   try {
     const session = await getSessionFromCookie();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const maybeParams = await resolveParams(context.params);
-    if (!maybeParams?.id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
-    const id = Number(maybeParams.id);
-    if (Number.isNaN(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+    const noteId = Number(context.params.id);
+    if (Number.isNaN(noteId)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
 
     const note = await prisma.note.findUnique({
-      where: { id },
-      include: { tags: { include: { tag: true } }, accesses: true },
+      where: { id: noteId },
+      include: {
+        user: { select: { id: true, email: true, displayName: true } }, // owner
+        accesses: { include: { user: { select: { id: true, email: true, displayName: true } } } }, // collaborators
+        tags: false,
+      },
     });
-    if (!note) return NextResponse.json({ error: "Note not found" }, { status: 404 });
 
+    if (!note) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    // permission check: owner or collaborator
     const isOwner = note.userId === session.userId;
-    const access = note.accesses.find(a => a.userId === session.userId);
-    if (!isOwner && !access) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const isCollaborator = note.accesses.some((a) => a.userId === session.userId);
+    if (!isOwner && !isCollaborator) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     return NextResponse.json(note);
   } catch (err) {
@@ -95,7 +99,6 @@ export async function GET(_req: Request, context: { params: unknown }) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
-
 /**
  * PUT /api/notes/[id]
  * updates note (owner or editor)

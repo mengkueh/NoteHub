@@ -20,33 +20,44 @@ export async function GET(req: Request) {
     const session = await getSessionFromCookie();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    // Optionally accept tagId query to filter both lists by tag
     const url = new URL(req.url);
-    const tagId = url.searchParams.get("tagId");
+    const tagId = url.searchParams.get("tagId") ? Number(url.searchParams.get("tagId")) : null;
+
+    // Owned notes
+    const ownedWhere: any = { userId: session.userId };
+    // Shared notes (notes where NoteAccess exists for this user, but NOT owned by user)
+    const sharedWhere: any = {
+      accesses: {
+        some: { userId: session.userId },
+      },
+    };
 
     if (tagId) {
-      // notes of this user filtered by tag
-      const notes = await prisma.note.findMany({
-        where: {
-          userId: session.userId,
-          tags: { some: { tagId: Number(tagId) } },
-        },
-        select: { id: true, title: true, content: true, createdAt: true },
-        orderBy: { createdAt: "desc" },
-      });
-      return NextResponse.json(notes);
+      ownedWhere.tags = { some: { tagId } };
+      sharedWhere.tags = { some: { tagId } };
     }
 
-    const notes = await prisma.note.findMany({
-      where: {
-        OR: [
-          { userId: session.userId }, // owner
-          { accesses: { some: { userId: session.userId } } }, // collaborator
-        ],
-      },
-      select: { id: true, title: true, content: true, createdAt: true, userId: true },
-      orderBy: { createdAt: "desc" },
-    });
-    return NextResponse.json(notes);
+    const [owned, shared] = await Promise.all([
+      prisma.note.findMany({
+        where: ownedWhere,
+        select: { id: true, title: true, content: true, createdAt: true, userId: true },
+        orderBy: { createdAt: "desc" },
+      }),
+      // ensure we don't return owned notes in the "shared" list by excluding userId === session.userId
+      prisma.note.findMany({
+        where: {
+          AND: [
+            { userId: { not: session.userId } },
+            sharedWhere,
+          ],
+        },
+        select: { id: true, title: true, content: true, createdAt: true, userId: true },
+        orderBy: { createdAt: "desc" },
+      }),
+    ]);
+
+    return NextResponse.json({ owned, shared });
   } catch (err) {
     console.error("GET /api/notes error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
