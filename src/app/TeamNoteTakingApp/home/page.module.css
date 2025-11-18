@@ -293,7 +293,7 @@
 .input:focus,
 .textarea:focus {
   border-color: #ffd60a;
-  background: #1d1d1d;
+  background: #151515;
   outline: none;
 }
 
@@ -367,8 +367,8 @@
 
 .tagOption {
   border-radius: 10px;
-  border: 1px solid #2d2d2d;
-  background: #1c1c1c;
+  border: 1px solid #303030;
+  background: #252525;
   padding: 10px 12px;
   display: flex;
   align-items: center;
@@ -377,29 +377,41 @@
   cursor: pointer;
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.2s ease, background 0.2s ease, transform 0.1s ease;
+  transition: background 120ms ease, border-color 120ms ease, transform 60ms ease;
   color: #f0f0f0;
 }
 
 .tagOption:hover {
-  background: #222222;
-  border-color: #3a3a3a;
+  background: #2b2b2b;
 }
 
-.tagOptionActive {
+.tagOptionSelected {
   border-color: #ffd60a;
-  background: rgba(255, 214, 10, 0.12);
+  box-shadow: 0 0 0 1px rgba(255, 214, 10, 0.3);
+}
+
+.tagOption:active {
+  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.tagOptionSelected:hover {
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .tagOptionLabel {
   font-size: 15px;
   font-weight: 500;
   flex: 1;
+  min-width: 0;
 }
 
 .tagOptionCount {
   font-size: 13px;
   color: #8e8e8e;
+  flex-shrink: 0;   
+  width: 65px;      
+  text-align: right;
 }
 
 .pillGrid {

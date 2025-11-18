@@ -132,7 +132,7 @@ export default function NewNotePage() {
                   key={tag.id}
                   type="button"
                   onClick={() => toggleTag(tag.id)}
-                  className={`${styles.tagOption} ${isSelected ? styles.tagOptionActive : ""}`}
+                  className={`${styles.tagOption} ${isSelected ? styles.tagOptionSelected : ""}`}
                 >
                   <span className={styles.tagOptionLabel}>{tag.name}</span>
                   <span className={styles.tagOptionCount}>{isSelected ? "Selected" : "Tap to add"}</span>

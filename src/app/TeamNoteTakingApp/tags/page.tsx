@@ -142,9 +142,9 @@ export default function TagsPage() {
             </p>
           </div>
           <div className={styles.spacer} />
-          <button type="button" className={`${styles.button} ${styles.refreshButton}`} onClick={refreshTags} disabled={loadingTags}>
-            Refresh
-          </button>
+            <button type="button" className={`${styles.button} ${styles.refreshButton}`} onClick={refreshTags} disabled={loadingTags}>
+              Refresh
+            </button>
         </div>
 
         <div className={styles.list}>
