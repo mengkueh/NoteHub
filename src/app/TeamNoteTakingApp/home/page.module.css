@@ -94,6 +94,15 @@
   text-decoration: none;
   transition: background 120ms ease, border-color 120ms ease;
 }
+
+.sidebarButton > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  flex-shrink: 0;
+  font-size: 18px;
+}
 .sidebarButton:hover {
   background: #2b2b2b;
   border-color: #3a3a3a;
@@ -311,6 +320,10 @@
   font-size: 15px;
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+}
+
+.refreshButton {
+  margin-right: -3px;
 }
 
 .button:hover {

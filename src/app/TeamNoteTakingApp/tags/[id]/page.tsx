@@ -7,6 +7,7 @@ import styles from "../../home/page.module.css";
 import { useLockBodyScroll } from "../../useLockBodyScroll";
 
 type Note = { id: number; title: string; content: string; createdAt?: string };
+type Tag = { id: number; name: string };
 
 export default function TagNotesPage() {
   const { id } = useParams();
@@ -16,8 +17,35 @@ export default function TagNotesPage() {
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<Note | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [tagName, setTagName] = useState<string>("");
 
   useLockBodyScroll();
+
+  // Fetch tag name
+  useEffect(() => {
+    if (!tagId) return;
+    let mounted = true;
+
+    fetch("/api/tags")
+      .then(async (res) => {
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+      })
+      .then((tags: Tag[]) => {
+        if (!mounted) return;
+        const tag = Array.isArray(tags) ? tags.find((t) => t.id === Number(tagId)) : null;
+        setTagName(tag?.name || "");
+      })
+      .catch((e) => {
+        console.error("load tag name err:", e);
+        if (!mounted) return;
+        setTagName("");
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [tagId]);
 
   useEffect(() => {
     if (!tagId) return;
@@ -52,7 +80,10 @@ export default function TagNotesPage() {
     };
   }, [tagId]);
 
-  const tagLabel = useMemo(() => (tagId ? `Tag ${tagId}` : "Tag"), [tagId]);
+  const tagLabel = useMemo(() => {
+    if (!tagId) return "Tag";
+    return tagName ? `Tag: ${tagName}` : `Tag ${tagId}`;
+  }, [tagId, tagName]);
 
   return (
     <main className={styles.dashboard}>
@@ -88,14 +119,16 @@ export default function TagNotesPage() {
         <div className={styles.listHeader}>
           <div>
             <p className={styles.sectionTitle}>{tagLabel}</p>
-            <p className={styles.sectionSubtitle}>
+            {/* <p className={styles.sectionSubtitle}>
               {loading
                 ? "Loading notes…"
                 : notes.length === 0
                 ? "No notes yet"
                 : `${notes.length} note${notes.length === 1 ? "" : "s"}`}
-            </p>
+            </p> */}
           </div>
+          <div className={styles.spacer} />
+            <Link href="/TeamNoteTakingApp/tags" className={`${styles.button} ${styles.refreshButton}`}>Back to tags</Link>
         </div>
 
         <div className={styles.list}>
@@ -129,7 +162,6 @@ export default function TagNotesPage() {
             {active?.title || (loading ? "Loading…" : "Select a note")}
           </div>
           <div className={styles.row}>
-            <Link href="/TeamNoteTakingApp/tags">Back to tags</Link>
             {active ? (
               <Link href={`/TeamNoteTakingApp/note/${active.id}`}>Edit note</Link>
             ) : null}

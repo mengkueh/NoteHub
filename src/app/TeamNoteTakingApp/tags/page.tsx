@@ -141,12 +141,8 @@ export default function TagsPage() {
               {loadingTags ? "Loading…" : tagCount === 0 ? "No tags yet" : `${tagCount} tag${tagCount === 1 ? "" : "s"}`}
             </p>
           </div>
-          <button
-            type="button"
-            className={styles.button}
-            onClick={refreshTags}
-            disabled={loadingTags}
-          >
+          <div className={styles.spacer} />
+          <button type="button" className={`${styles.button} ${styles.refreshButton}`} onClick={refreshTags} disabled={loadingTags}>
             Refresh
           </button>
         </div>
