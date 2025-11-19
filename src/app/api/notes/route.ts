@@ -17,54 +17,65 @@ async function getSessionFromCookie() {
   return session;
 }
 
+// GET /api/notes?tagId=...
 export async function GET(req: Request) {
   try {
     const session = await getSessionFromCookie();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // Optionally accept tagId query to filter both lists by tag
     const url = new URL(req.url);
-    const tagId = url.searchParams.get("tagId") ? Number(url.searchParams.get("tagId")) : null;
+    const tagIdStr = url.searchParams.get("tagId");
 
-    // Owned notes
-    const ownedWhere: any = { userId: session.userId };
-    // Shared notes (notes where NoteAccess exists for this user, but NOT owned by user)
-    const sharedWhere: any = {
-      accesses: {
-        some: { userId: session.userId },
-      },
-    };
+    if (tagIdStr) {
+      const tagId = Number(tagIdStr);
+      if (Number.isNaN(tagId)) return NextResponse.json({ error: "Invalid tagId" }, { status: 400 });
 
-    if (tagId) {
-      ownedWhere.tags = { some: { tagId } };
-      sharedWhere.tags = { some: { tagId } };
+      // 找出屬於此 user 的 notes (owner) AND shared notes where the tag is attached
+      const [owned, shared] = await Promise.all([
+        prisma.note.findMany({
+          where: {
+            userId: session.userId,
+            tags: { some: { tagId } },
+          },
+          select: { id: true, title: true, content: true, createdAt: true, userId: true },
+          orderBy: { createdAt: "desc" },
+        }),
+        prisma.note.findMany({
+          where: {
+            tags: { some: { tagId } },
+            accesses: { some: { userId: session.userId } }, // shared with current session user
+            // exclude owned ones (avoid duplicates)
+            userId: { not: session.userId },
+          },
+          select: { id: true, title: true, content: true, createdAt: true, userId: true },
+          orderBy: { createdAt: "desc" },
+        }),
+      ]);
+
+      return NextResponse.json({ owned, shared });
     }
 
-    const [owned, shared] = await Promise.all([
+    //  non-tag case: return owned + shared (existing behavior)
+    const [ownedAll, sharedAll] = await Promise.all([
       prisma.note.findMany({
-        where: ownedWhere,
+        where: { userId: session.userId },
         select: { id: true, title: true, content: true, createdAt: true, userId: true },
         orderBy: { createdAt: "desc" },
       }),
-      // ensure we don't return owned notes in the "shared" list by excluding userId === session.userId
       prisma.note.findMany({
-        where: {
-          AND: [
-            { userId: { not: session.userId } },
-            sharedWhere,
-          ],
-        },
+        where: { accesses: { some: { userId: session.userId } }, userId: { not: session.userId } },
         select: { id: true, title: true, content: true, createdAt: true, userId: true },
         orderBy: { createdAt: "desc" },
       }),
     ]);
 
-    return NextResponse.json({ owned, shared });
+    return NextResponse.json({ owned: ownedAll, shared: sharedAll });
   } catch (err) {
     console.error("GET /api/notes error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+
 
 export async function POST(req: Request) {
   try {

@@ -3,24 +3,40 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 
+/**
+ * getSessionFromCookie - safe helper
+ * cookies() in app router returns a ReadonlyRequestCookies synchronously in many Next versions.
+ * We keep it non-blocking (no extra await) and guard against errors.
+ */
 async function getSessionFromCookie() {
-  const cookieStore = await cookies();
-  const sessionId = cookieStore.get("session")?.value ?? null;
-  if (!sessionId) return null;
-  const session = await prisma.session.findUnique({ where: { id: sessionId } });
-  if (!session) return null;
-  if (session.expiresAt < new Date()) return null;
-  return session;
+  try {
+    const cookieStore = await cookies(); // synchronous in app router
+    const sessionId = cookieStore.get("session")?.value ?? null;
+    if (!sessionId) return null;
+    const session = await prisma.session.findUnique({ where: { id: sessionId } });
+    if (!session) return null;
+    if (session.expiresAt < new Date()) return null;
+    return session;
+  } catch (err) {
+    console.error("getSessionFromCookie error:", err);
+    return null;
+  }
 }
 
-/** type guard: unknown -> is array of number|string (we accept either) */
-function isNumberOrStringArray(x: unknown): x is Array<number | string> {
-  return Array.isArray(x) && x.every((item) => typeof item === "number" || typeof item === "string");
+/** helper: accept number[] or string[] and convert to numbers */
+function parseIdArray(x: unknown): number[] {
+  if (!Array.isArray(x)) return [];
+  return x
+    .map((v) => {
+      if (typeof v === "number") return v;
+      if (typeof v === "string") return Number(v);
+      return NaN;
+    })
+    .filter((n) => Number.isFinite(n));
 }
 
 /**
- * GET /api/tags
- *   - returns tags belonging to the current user
+ * GET - returns tags for current user (id + name + optional notes count)
  */
 export async function GET() {
   try {
@@ -30,10 +46,13 @@ export async function GET() {
     const tags = await prisma.tag.findMany({
       where: { userId: session.userId },
       orderBy: { name: "asc" },
-      select: { id: true, name: true },
+      // include note count so UI can show how many notes in each tag
+      include: { notes: { select: { noteId: true } } },
     });
 
-    return NextResponse.json(tags);
+    // transform to friendlier shape for client
+    const out = tags.map((t) => ({ id: t.id, name: t.name, notes: t.notes ?? [] }));
+    return NextResponse.json(out);
   } catch (err) {
     console.error("GET /api/tags error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
@@ -41,71 +60,75 @@ export async function GET() {
 }
 
 /**
- * POST /api/tags
- * body: { name: string, noteIds?: number[] | string[] }
- * - creates (or upserts) a tag for the current user
- * - attaches only notes that belong to the current user
+ * POST - create/upsert a tag for this user and attach specified notes.
+ * Body: { name: string, noteIds?: number[] | string[] }
  */
 export async function POST(req: Request) {
   try {
     const session = await getSessionFromCookie();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // parse body as unknown
-    const rawBody = await req.json().catch(() => ({} as unknown));
+    const raw = await req.json().catch(() => ({}));
+    const name = typeof raw?.name === "string" ? raw.name.trim() : "";
+    if (!name) return NextResponse.json({ error: "Missing tag name" }, { status: 400 });
 
-    // get name safely
-    const name =
-      typeof rawBody === "object" && rawBody !== null && "name" in rawBody && typeof (rawBody as Record<string, unknown>).name === "string"
-        ? ((rawBody as Record<string, unknown>).name as string).trim()
-        : "";
-
-    if (!name) return NextResponse.json({ error: "Missing name" }, { status: 400 });
-
-    // Extract noteIds safely: support number[] or string[] coming from client
-    const maybeNoteIds =
-      typeof rawBody === "object" && rawBody !== null && "noteIds" in rawBody
-        ? (rawBody as Record<string, unknown>).noteIds
-        : undefined;
-
-    let noteIds: number[] = [];
-    if (isNumberOrStringArray(maybeNoteIds)) {
-      // convert to numbers and filter NaN
-      noteIds = maybeNoteIds.map((v) => Number(v)).filter((n) => !Number.isNaN(n));
-    }
-
-    // upsert tag scoped to this user (requires @@unique([userId, name]) in schema)
+    // parse noteIds safely
+    const requestedNoteIds = parseIdArray(raw?.noteIds);
+    // upsert tag scoped to this user (requires @@unique([userId, name]) in prisma schema)
     const tag = await prisma.tag.upsert({
       where: { userId_name: { userId: session.userId, name } },
       update: {},
       create: { name, userId: session.userId },
     });
 
-    // attach notes that are owned by this user only
-    if (noteIds.length > 0) {
-      const ownedNotes = await prisma.note.findMany({
-        where: { id: { in: noteIds }, userId: session.userId },
+    // if user passed note ids, attach only notes that the user may attach:
+    // user can attach:
+    // - notes they own (note.userId === session.userId)
+    // - notes shared with them (noteAccess exists with userId === session.userId)
+    if (requestedNoteIds.length > 0) {
+      const allowedNotes = await prisma.note.findMany({
+        where: {
+          id: { in: requestedNoteIds },
+          AND: [
+            {
+              OR: [
+                { userId: session.userId }, // owner
+                { accesses: { some: { userId: session.userId } } }, // shared with them
+              ],
+            },
+          ],
+        },
         select: { id: true },
       });
-      const ownedIds = ownedNotes.map((n) => n.id);
-      if (ownedIds.length > 0) {
-        // createMany with skipDuplicates to avoid duplicate composite PK errors
+
+      const allowedIds = allowedNotes.map((n) => n.id);
+      if (allowedIds.length > 0) {
+        // bulk create noteTag entries and skip duplicates
         await prisma.noteTag.createMany({
-          data: ownedIds.map((nid) => ({ noteId: nid, tagId: tag.id })),
+          data: allowedIds.map((nid) => ({ noteId: nid, tagId: tag.id })),
           skipDuplicates: true,
         });
       }
     }
 
-    // return created/updated tag including linked note basic info
+    // return created tag with its notes (simple shape)
     const created = await prisma.tag.findUnique({
       where: { id: tag.id },
       include: { notes: { include: { note: { select: { id: true, title: true } } } } },
     });
 
     return NextResponse.json(created, { status: 201 });
-  } catch (err) {
+  } catch (err: any) {
     console.error("POST /api/tags error:", err);
+
+    // helpful hint if missing unique index in schema
+    if (err?.message && /userId_name/i.test(String(err.message))) {
+      return NextResponse.json(
+        { error: "Schema error: ensure Tag model has @@unique([userId, name]) in prisma schema" },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

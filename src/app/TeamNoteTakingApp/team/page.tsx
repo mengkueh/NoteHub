@@ -8,8 +8,9 @@ import { useLockBodyScroll } from "../useLockBodyScroll";
 
 type Note = { id: number; title: string; content: string; createdAt?: string };
 
-export default function Dashboard() {
-  const router = useRouter();
+export default function TeamPage() {
+    
+const router = useRouter();
   const [owned, setOwned] = useState<Note[]>([]);
   const [shared, setShared] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,20 +79,14 @@ export default function Dashboard() {
     );
   }
 
-const ownedFiltered = query.trim()
-    ? owned.filter((n) =>
-        (n.title + " " + n.content).toLowerCase().includes(query.trim().toLowerCase())
+    const sharedFiltered = query.trim()
+    ?shared.filter((m) =>
+        (m.title + " " + m.content).toLowerCase().includes(query.trim().toLowerCase())
       )
-    : owned;
+    : shared;
 
-// const sharedFiltered = query.trim()
-//     ?shared.filter((m) =>
-//         (m.title + " " + m.content).toLowerCase().includes(query.trim().toLowerCase())
-//       )
-//     : shared; 
-    
 
-  async function handleDelete(id: number) {
+    async function handleDelete(id: number) {
     if (!confirm("Delete note?")) return;
     try {
       const res = await fetch(`/api/notes/${id}`, { method: "DELETE" });
@@ -108,15 +103,8 @@ const ownedFiltered = query.trim()
     }
   }
 
-  async function handleTrash(noteId: number) {
-  const res = await fetch(`/api/notes/${noteId}/trash`, { method: "POST" });
-  if (!res.ok) { alert("Failed to trash"); return; }
-  // redirect back or refresh list
-  router.push("/TeamNoteTakingApp/home");
-}
-
   
-  async function handleLogout() {
+    async function handleLogout() {
     setLoading(true);
     try {
       const res = await fetch("/api/logout", { method: "POST" });
@@ -133,14 +121,13 @@ const ownedFiltered = query.trim()
       setLoading(false);
     }
   }
-
-  return (
-    <main className={styles.dashboard}>
-      {/* Sidebar */}
-      <aside className={styles.sidebar}>
+    return (
+        <main className={styles.dashboard}>
+    <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <span>NoteHub</span>
-        
+          <div className={styles.spacer} />
+          <Link href="/TeamNoteTakingApp" className={styles.logoutButton} onClick={handleLogout}>Logout</Link>
         </div>
         <div className={styles.sidebarActions}>
           <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
@@ -166,9 +153,8 @@ const ownedFiltered = query.trim()
         </div>
       </aside>
 
-      {/* Notes list */}
-      <section className={styles.listPane}>
-        <div className={styles.listHeader}>
+<section className={styles.listPane}>
+    <div className={styles.listHeader}>
           <input
             className={styles.search}
             placeholder="Search all notes"
@@ -176,33 +162,7 @@ const ownedFiltered = query.trim()
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <div className={styles.list}>
-          {loading ? (
-            <div className={styles.noteMeta}>Loading notes…</div>
-          ) : ownedFiltered.length === 0 ? (
-            <div className={styles.noteMeta}>No notes</div>
-          ) : (
-            ownedFiltered.map((n) => (
-              <div
-                key={n.id}
-                className={styles.noteItem}
-                onClick={() => setActive(n)}
-                role="button"
-              >
-                <h3 className={styles.noteTitle}>{n.title || "Untitled"}</h3>
-                <div className={styles.notePreview}>
-                  {n.content || "No content"}
-                </div>
-                <div className={styles.noteMeta}>
-                  {n.createdAt ? new Date(n.createdAt).toLocaleString() : ""}
-                </div>
-              </div>
-            ))
-            
-          )}
-        </div>
-
-        {/* <div>
+        <div>
           <h4 style={{ margin: "8px 0" }}>Shared With Me</h4>
           {sharedFiltered.length === 0 ? (
             <div className={styles.noteMeta}>No shared notes</div>
@@ -215,11 +175,10 @@ const ownedFiltered = query.trim()
               </div>
             ))
           )}
-        </div> */}
-      </section>
+        </div>
+        </section>
 
-      {/* Content preview (right) */}
-      <section className={styles.contentPane}>
+        <section className={styles.contentPane}>
         <div className={styles.contentHeader}>
           <div className={styles.contentTitle}>
             {active?.title || "Select a note"}
@@ -229,7 +188,7 @@ const ownedFiltered = query.trim()
               <Link href={`/TeamNoteTakingApp/note/${active.id}`}>
                 Edit
               </Link>
-              <button onClick={() => handleTrash(active.id)} style={{ color: "#ff6b6b" }}>
+              <button onClick={() => handleDelete(active.id)} style={{ color: "#ff6b6b" }}>
                 Delete
               </button>
             </div>
@@ -245,6 +204,7 @@ const ownedFiltered = query.trim()
           )}
         </div>
       </section>
-    </main>
-  );
+
+        </main>
+    )
 }

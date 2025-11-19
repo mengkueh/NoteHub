@@ -13,7 +13,9 @@ type Note = { id: number; title: string; content?: string };
 export default function TagsPage() {
   const router = useRouter();
   const [tags, setTags] = useState<Tag[]>([]);
-  const [notes, setNotes] = useState<Note[]>([]);
+  // const [notes, setNotes] = useState<Note[]>([]);
+  const [owned, setOwned] = useState<Note[]>([]);
+  const [shared, setShared] = useState<Note[]>([]);
   const [loadingTags, setLoadingTags] = useState(true);
   const [loadingNotes, setLoadingNotes] = useState(true);
   const [tagName, setTagName] = useState("");
@@ -48,10 +50,12 @@ export default function TagsPage() {
       const res = await fetch("/api/notes");
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
-      setNotes(Array.isArray(data) ? data : []);
+      setOwned(Array.isArray(data.owned) ? data.owned : []);
+      setShared(Array.isArray(data.shared) ? data.shared : []);
     } catch (err) {
       console.error("fetch notes err:", err);
-      setNotes([]);
+      setOwned([]);
+      setShared([]);
     } finally {
       setLoadingNotes(false);
     }
@@ -108,10 +112,6 @@ export default function TagsPage() {
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <span>NoteHub</span>
-          <div className={styles.spacer} />
-          <Link href="/TeamNoteTakingApp" className={styles.logoutButton}>
-            Logout
-          </Link>
         </div>
         <div className={styles.sidebarActions}>
           <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
@@ -196,14 +196,14 @@ export default function TagsPage() {
             </div>
 
             <div className={styles.fieldGroup}>
-              <span className={styles.fieldLabel}>Attach notes (optional)</span>
+              <span className={styles.fieldLabel}>Attach notes</span>
               <div className={`${styles.surface} ${styles.surfaceDense}`} style={{ maxHeight: 280, overflow: "auto" }}>
                 {loadingNotes ? (
                   <div className={styles.listEmpty}>Loading notes…</div>
-                ) : notes.length === 0 ? (
+                ) : owned.length === 0 ? (
                   <div className={styles.listEmpty}>No notes yet. Create one first.</div>
                 ) : (
-                  notes.map((note) => {
+                  owned.map((note) => {
                     const isChecked = selectedNoteIds.includes(note.id);
                     const preview =
                       note.content && note.content.length > 100
@@ -229,6 +229,41 @@ export default function TagsPage() {
                     );
                   })
                 )}
+
+                <span className={styles.fieldLabel}>Shared notes</span>
+                <div className={`${styles.surface} ${styles.surfaceDense}`} style={{ maxHeight: 280, overflow: "auto" }}>
+                  {loadingNotes ? (
+                    <div className={styles.listEmpty}>Loading notes…</div>
+                  ) : shared.length === 0 ? (
+                    <div className={styles.listEmpty}>No notes yet. Create one first.</div>
+                  ) : (
+                    shared.map((note) => {
+                      const isChecked = selectedNoteIds.includes(note.id);
+                      const preview =
+                        note.content && note.content.length > 100
+                          ? `${note.content.slice(0, 100)}…`
+                          : note.content;
+                      return (
+                        <label
+                          key={note.id}
+                          className={`${styles.checkRow} ${isChecked ? styles.checkRowActive : ""}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => toggleNoteSelect(note.id)}
+                          />
+                          <div>
+                            <div className={styles.checkRowTitle}>{note.title || "Untitled note"}</div>
+                            {preview ? (
+                              <div className={styles.checkRowPreview}>{preview}</div>
+                            ) : null}
+                          </div>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
               </div>
             </div>
 

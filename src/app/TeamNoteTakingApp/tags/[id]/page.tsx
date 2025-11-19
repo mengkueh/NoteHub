@@ -13,7 +13,8 @@ export default function TagNotesPage() {
   const { id } = useParams();
   const router = useRouter();
   const tagId = Array.isArray(id) ? id[0] : id ?? "";
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [owned, setOwned] = useState<Note[]>([]);
+  const [shared, setShared] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<Note | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -48,37 +49,46 @@ export default function TagNotesPage() {
   }, [tagId]);
 
   useEffect(() => {
-    if (!tagId) return;
-    let mounted = true;
-    setLoading(true);
-    setError(null);
+  if (!tagId) return;
+  let mounted = true;
+  setLoading(true);
+  setError(null);
 
-    fetch(`/api/notes?tagId=${tagId}`)
-      .then(async (res) => {
-        if (!res.ok) throw new Error(await res.text());
-        return res.json();
-      })
-      .then((data: Note[]) => {
-        if (!mounted) return;
-        const safeNotes = Array.isArray(data) ? data : [];
-        setNotes(safeNotes);
-        setActive(null);
-      })
-      .catch((e) => {
-        console.error("load tagged notes err:", e);
-        if (!mounted) return;
-        setNotes([]);
-        setActive(null);
-        setError("Unable to load notes for this tag.");
-      })
-      .finally(() => {
-        if (mounted) setLoading(false);
-      });
+  fetch(`/api/notes?tagId=${tagId}`)
+    .then(async (res) => {
+      if (!mounted) return null;
+      if (res.status === 401) {
+        // not logged in -> redirect or show message
+        router.push("/TeamNoteTakingApp"); // 或者 setError + show login link
+        return null;
+      }
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    })
+    .then((data) => {
+      if (!mounted || !data) return;
+      // expect { owned: Note[], shared: Note[] }
+      setOwned(Array.isArray(data.owned) ? data.owned : []);
+      setShared(Array.isArray(data.shared) ? data.shared : []);
+      setActive(null);
+    })
+    .catch((e) => {
+      console.error("load tagged notes err:", e);
+      if (!mounted) return;
+      setOwned([]);
+      setShared([]);
+      setActive(null);
+      setError("Unable to load notes for this tag.");
+    })
+    .finally(() => {
+      if (mounted) setLoading(false);
+    });
 
-    return () => {
-      mounted = false;
-    };
-  }, [tagId]);
+  return () => {
+    mounted = false;
+  };
+}, [tagId]);
+
 
   const tagLabel = useMemo(() => {
     if (!tagId) return "Tag";
@@ -90,10 +100,6 @@ export default function TagNotesPage() {
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <span>NoteHub</span>
-          <div className={styles.spacer} />
-          <Link href="/TeamNoteTakingApp" className={styles.logoutButton}>
-            Logout
-          </Link>
         </div>
         <div className={styles.sidebarActions}>
           <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
@@ -136,10 +142,10 @@ export default function TagNotesPage() {
             <div className={styles.listEmpty}>Loading notes…</div>
           ) : error ? (
             <div className={styles.listEmpty}>{error}</div>
-          ) : notes.length === 0 ? (
+          ) : owned.length === 0 ? (
             <div className={styles.listEmpty}>No notes in this tag yet.</div>
           ) : (
-            notes.map((note) => (
+            owned.map((note) => (
               <div
                 key={note.id}
                 className={styles.noteItem}
