@@ -36,6 +36,7 @@ export async function GET(req: Request) {
           where: {
             userId: session.userId,
             tags: { some: { tagId } },
+            deletedAt: null,
           },
           select: { id: true, title: true, content: true, createdAt: true, userId: true },
           orderBy: { createdAt: "desc" },
@@ -46,6 +47,7 @@ export async function GET(req: Request) {
             accesses: { some: { userId: session.userId } }, // shared with current session user
             // exclude owned ones (avoid duplicates)
             userId: { not: session.userId },
+            deletedAt: null,
           },
           select: { id: true, title: true, content: true, createdAt: true, userId: true },
           orderBy: { createdAt: "desc" },
@@ -58,12 +60,12 @@ export async function GET(req: Request) {
     //  non-tag case: return owned + shared (existing behavior)
     const [ownedAll, sharedAll] = await Promise.all([
       prisma.note.findMany({
-        where: { userId: session.userId },
+        where: { userId: session.userId, deletedAt: null },
         select: { id: true, title: true, content: true, createdAt: true, userId: true },
         orderBy: { createdAt: "desc" },
       }),
       prisma.note.findMany({
-        where: { accesses: { some: { userId: session.userId } }, userId: { not: session.userId } },
+        where: { accesses: { some: { userId: session.userId } }, userId: { not: session.userId }, deletedAt: null },
         select: { id: true, title: true, content: true, createdAt: true, userId: true },
         orderBy: { createdAt: "desc" },
       }),

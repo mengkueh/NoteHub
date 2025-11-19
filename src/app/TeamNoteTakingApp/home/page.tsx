@@ -114,11 +114,32 @@ const ownedFiltered = query.trim()
   }
 
   async function handleTrash(noteId: number) {
-  const res = await fetch(`/api/notes/${noteId}/trash`, { method: "POST" });
-  if (!res.ok) { alert("Failed to trash"); return; }
-  // redirect back or refresh list
-  router.push("/TeamNoteTakingApp/home");
+  if (!confirm("Move this note to Trash?")) return;
+
+  setDeleting(noteId); // you already have this state
+
+  try {
+    const res = await fetch(`/api/notes/${noteId}/trash`, { method: "POST" });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: "Unknown" }));
+      alert(err.error || "Failed to move to trash");
+      return;
+    }
+
+    // Remove note from local lists so UI updates without refresh
+    setOwned((prev) => prev.filter((n) => n.id !== noteId));
+    setShared((prev) => prev.filter((n) => n.id !== noteId));
+
+    // If the trashed note was the active preview, close it
+    setActive((prev) => (prev && prev.id === noteId ? null : prev));
+  } catch (err) {
+    console.error("trash error:", err);
+    alert("Network error");
+  } finally {
+    setDeleting(null);
+  }
 }
+
 
   
   async function handleLogout() {
@@ -233,7 +254,7 @@ const ownedFiltered = query.trim()
               <Link href={`/TeamNoteTakingApp/note/${active.id}`}>
                 Edit
               </Link>
-              <button onClick={() => handleTrash(active.id)} style={{ color: "#ff6b6b" }}>
+              <button className={styles.row} onClick={() => handleTrash(active.id)} style={{ color: "#ff6b6b" }}>
                 Delete
               </button>
             </div>
