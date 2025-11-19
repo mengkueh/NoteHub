@@ -92,7 +92,20 @@ export default function TagsPage() {
         return [...prev, created].sort((a, b) => a.name.localeCompare(b.name));
       });
       resetForm();
-      if (created?.id) router.push(`/TeamNoteTakingApp/tags/${created.id}`);
+      if (created?.id && created?.name) {
+        // Helper function to create URL-friendly slug from tag name
+        const createSlug = (name: string): string => {
+          return name
+            .toLowerCase()
+            .trim()
+            .replace(/[^\w\s-]/g, "") // Remove special characters
+            .replace(/\s+/g, "-") // Replace spaces with hyphens
+            .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+            .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
+        };
+        const slug = createSlug(created.name);
+        router.push(`/TeamNoteTakingApp/tags/${slug}`);
+      }
     } catch (err) {
       console.error("create tag err:", err);
       alert("Network error");
@@ -156,20 +169,33 @@ export default function TagsPage() {
             tags
               .slice()
               .sort((a, b) => a.name.localeCompare(b.name))
-              .map((tag) => (
-                <Link
-                  key={tag.id}
-                  href={`/TeamNoteTakingApp/tags/${tag.id}`}
-                  className={styles.tagOption}
-                >
-                  <span className={styles.tagOptionLabel}>{tag.name}</span>
-                  <span className={styles.tagOptionCount}>
-                    {(tag.notes?.length ?? 0) === 1
-                      ? "1 note"
-                      : `${tag.notes?.length ?? 0} notes`}
-                  </span>
-                </Link>
-              ))
+              .map((tag) => {
+                // Helper function to create URL-friendly slug from tag name
+                const createSlug = (name: string): string => {
+                  return name
+                    .toLowerCase()
+                    .trim()
+                    .replace(/[^\w\s-]/g, "") // Remove special characters
+                    .replace(/\s+/g, "-") // Replace spaces with hyphens
+                    .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+                    .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
+                };
+                const slug = createSlug(tag.name);
+                return (
+                  <Link
+                    key={tag.id}
+                    href={`/TeamNoteTakingApp/tags/${slug}`}
+                    className={styles.tagOption}
+                  >
+                    <span className={styles.tagOptionLabel}>{tag.name}</span>
+                    <span className={styles.tagOptionCount}>
+                      {(tag.notes?.length ?? 0) === 1
+                        ? "1 note"
+                        : `${tag.notes?.length ?? 0} notes`}
+                    </span>
+                  </Link>
+                );
+              })
           )}
         </div>
       </section>
