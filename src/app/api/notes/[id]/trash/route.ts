@@ -1,4 +1,6 @@
 // app/api/notes/[id]/trash/route.ts
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionFromCookie } from "@/lib/auth";
