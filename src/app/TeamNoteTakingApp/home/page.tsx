@@ -137,7 +137,6 @@ const sharedFiltered = query.trim()
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <span>NoteHub</span>
-          
         </div>
         <div className={styles.sidebarActions}>
           <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>

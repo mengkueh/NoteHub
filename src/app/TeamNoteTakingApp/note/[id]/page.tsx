@@ -156,10 +156,6 @@ export default function EditNotePage() {
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <span>NoteHub</span>
-          <div className={styles.spacer} />
-          <Link href="/TeamNoteTakingApp" className={styles.logoutButton}>
-            Logout
-          </Link>
         </div>
         <div className={styles.sidebarActions}>
           <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
