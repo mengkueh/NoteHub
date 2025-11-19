@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import styles from "./settingspage.module.css";
+import styles2 from "../login&register.module.css";
 
 type TrashedNote = {
   id: number;
@@ -16,7 +18,9 @@ type TrashedNote = {
 export default function SettingPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [items, setItems] = useState<TrashedNote[]>([]);
+ 
   useEffect(() => {
     fetch("/api/trash")
       .then((r) => r.json())
