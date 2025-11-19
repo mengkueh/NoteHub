@@ -1,0 +1,56 @@
+.logoutButton {
+    background: #f44;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+    font-weight: 600;
+    font-size: 18px;
+    text-align: center;
+    width: 100%;
+    margin-top: 5px;
+  }
+  .logoutButton:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+  .logoutButton:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
+  
+  /* Centered settings page */
+  .settingsContainer {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000000;
+    color: #e5e5e5;
+  }
+  
+  .settingsCard {
+    background: #1C1C1E;
+    border: 1px solid #2a2a2a;
+    border-radius: 14px;
+    padding: 32px 40px;
+    width: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.1);  
+    position: relative;
+  }
+  
+  .settingsTitle {
+    font-size: 1.9rem; /* 32px */
+    line-height: 2.25rem;
+    font-weight: 600; /* iOS uses semibold, not bold */
+    text-align: center;
+    color: #FFFFFF; /* iOS dark mode primary text */
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.01em; /* iOS tight letter spacing */
+  }

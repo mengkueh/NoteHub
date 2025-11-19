@@ -17,6 +17,8 @@ export default function Dashboard() {
   const [active, setActive] = useState<Note | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notLoggedIn, setNotLoggedIn] = useState(false);
+  const [deleting, setDeleting] = useState<number | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useLockBodyScroll();
 
@@ -93,6 +95,7 @@ const ownedFiltered = query.trim()
 
   async function handleDelete(id: number) {
     if (!confirm("Delete note?")) return;
+    setDeleting(id);
     try {
       const res = await fetch(`/api/notes/${id}`, { method: "DELETE" });
       if (!res.ok) {
@@ -105,6 +108,8 @@ const ownedFiltered = query.trim()
     } catch (err) {
       console.error(err);
       alert("Network error");
+    } finally {
+      setDeleting(null);
     }
   }
 
@@ -117,7 +122,7 @@ const ownedFiltered = query.trim()
 
   
   async function handleLogout() {
-    setLoading(true);
+    setLoggingOut(true);
     try {
       const res = await fetch("/api/logout", { method: "POST" });
       if (res.ok) {
@@ -125,12 +130,12 @@ const ownedFiltered = query.trim()
         router.push("/TeamNoteTakingApp");
       } else {
         alert("Failed to logout");
+        setLoggingOut(false);
       }
     } catch (err) {
       console.error(err);
       alert("Network error");
-    } finally {
-      setLoading(false);
+      setLoggingOut(false);
     }
   }
 
@@ -140,7 +145,6 @@ const ownedFiltered = query.trim()
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <span>NoteHub</span>
-        
         </div>
         <div className={styles.sidebarActions}>
           <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>

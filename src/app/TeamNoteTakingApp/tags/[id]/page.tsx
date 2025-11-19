@@ -12,19 +12,32 @@ type Tag = { id: number; name: string };
 export default function TagNotesPage() {
   const { id } = useParams();
   const router = useRouter();
-  const tagId = Array.isArray(id) ? id[0] : id ?? "";
-  const [owned, setOwned] = useState<Note[]>([]);
-  const [shared, setShared] = useState<Note[]>([]);
+  const slug = Array.isArray(id) ? id[0] : id ?? "";
+  const[owned, setOwned] = useState<Note[]>([]);
+  const[shared, setShared] = useState<Note[]>([]);
+  // const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<Note | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tagName, setTagName] = useState<string>("");
+  const [tagId, setTagId] = useState<number | null>(null);
 
   useLockBodyScroll();
 
-  // Fetch tag name
+  // Helper function to create URL-friendly slug from tag name
+  const createSlug = (name: string): string => {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "") // Remove special characters
+      .replace(/\s+/g, "-") // Replace spaces with hyphens
+      .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+      .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
+  };
+
+  // Find tag by slug and update URL if needed
   useEffect(() => {
-    if (!tagId) return;
+    if (!slug) return;
     let mounted = true;
 
     fetch("/api/tags")
@@ -34,19 +47,47 @@ export default function TagNotesPage() {
       })
       .then((tags: Tag[]) => {
         if (!mounted) return;
-        const tag = Array.isArray(tags) ? tags.find((t) => t.id === Number(tagId)) : null;
-        setTagName(tag?.name || "");
+        // Try to find tag by slug (for new format) or by ID (for backwards compatibility)
+        let tag: Tag | null = null;
+        
+        // First, try to match by slug
+        if (slug && !/^\d+$/.test(slug)) {
+          tag = Array.isArray(tags) 
+            ? tags.find((t) => createSlug(t.name) === slug) || null
+            : null;
+        }
+        
+        // If not found and slug is a number, try by ID (backwards compatibility)
+        if (!tag && /^\d+$/.test(slug)) {
+          tag = Array.isArray(tags) 
+            ? tags.find((t) => t.id === Number(slug)) || null
+            : null;
+        }
+        
+        if (tag) {
+          setTagName(tag.name);
+          setTagId(tag.id);
+          // Update URL to use slug format if it's still using ID
+          const expectedSlug = createSlug(tag.name);
+          if (slug !== expectedSlug && /^\d+$/.test(slug)) {
+            router.replace(`/TeamNoteTakingApp/tags/${expectedSlug}`, { scroll: false });
+          }
+        } else {
+          setError("Tag not found");
+          setLoading(false);
+        }
       })
       .catch((e) => {
         console.error("load tag name err:", e);
         if (!mounted) return;
-        setTagName("");
+        setError("Unable to load tag.");
+        setLoading(false);
       });
 
     return () => {
       mounted = false;
     };
-  }, [tagId]);
+  }, [slug, router]);
 
   useEffect(() => {
   if (!tagId) return;
@@ -91,9 +132,9 @@ export default function TagNotesPage() {
 
 
   const tagLabel = useMemo(() => {
-    if (!tagId) return "Tag";
-    return tagName ? `Tag: ${tagName}` : `Tag ${tagId}`;
-  }, [tagId, tagName]);
+    if (!slug) return "Tag";
+    return tagName ? `Tag: ${tagName}` : "Tag: ...";
+  }, [slug, tagName]);
 
   return (
     <main className={styles.dashboard}>
@@ -125,13 +166,6 @@ export default function TagNotesPage() {
         <div className={styles.listHeader}>
           <div>
             <p className={styles.sectionTitle}>{tagLabel}</p>
-            {/* <p className={styles.sectionSubtitle}>
-              {loading
-                ? "Loading notes…"
-                : notes.length === 0
-                ? "No notes yet"
-                : `${notes.length} note${notes.length === 1 ? "" : "s"}`}
-            </p> */}
           </div>
           <div className={styles.spacer} />
             <Link href="/TeamNoteTakingApp/tags" className={`${styles.button} ${styles.refreshButton}`}>Back to tags</Link>

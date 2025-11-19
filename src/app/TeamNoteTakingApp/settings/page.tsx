@@ -55,25 +55,28 @@ export default function SettingPage() {
   }
 
   return (
-    <main style={{ padding: 20 }}>
-      <h1>Settings</h1>
+     <main className={styles.settingsContainer}>
+      <div className={styles.settingsCard}>
+        {/* Back button */}
+        <button
+          className={styles2.backButton}
+          onClick={() => router.back()}
+          disabled={isLoading}
+          aria-label="Back"
+        >
+          ←
+        </button>
 
-      <button
-        onClick={handleLogout}
-        disabled={loading}
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#f44",
-          color: "white",
-          border: "none",
-          borderRadius: "8px",
-          cursor: "pointer",
-          marginTop: "20px",
-        }}
-      >
-        {loading ? "Logging out..." : "Logout"}
-      </button>
-      <div>
+        <h1 className={styles.settingsTitle}>Settings</h1>
+
+        <button
+          onClick={handleLogout}
+          disabled={loading}
+          className={styles.logoutButton}
+        >
+          {loading ? "Logging out..." : "Logout"}
+        </button>
+        <div>
       <h2>Trash</h2>
       {items.length === 0 ? <div>No recently deleted notes.</div> : null}
       <ul>
@@ -88,6 +91,7 @@ export default function SettingPage() {
         ))}
       </ul>
     </div>
+      </div>
     </main>
   );
 }
