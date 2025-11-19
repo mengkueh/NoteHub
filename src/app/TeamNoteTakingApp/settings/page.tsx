@@ -34,12 +34,13 @@ export default function SettingPage() {
         disabled={loading}
         style={{
           padding: "10px 20px",
-          backgroundColor: "#f44",
+          backgroundColor: "black",
           color: "white",
           border: "none",
           borderRadius: "8px",
-          cursor: "pointer",
+          cursor: loading ? "wait" : "pointer",
           marginTop: "20px",
+          opacity: loading ? 0.6 : 1,
         }}
       >
         {loading ? "Logging out..." : "Logout"}

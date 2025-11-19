@@ -17,6 +17,8 @@ export default function Dashboard() {
   const [active, setActive] = useState<Note | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notLoggedIn, setNotLoggedIn] = useState(false);
+  const [deleting, setDeleting] = useState<number | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useLockBodyScroll();
 
@@ -93,6 +95,7 @@ const sharedFiltered = query.trim()
 
   async function handleDelete(id: number) {
     if (!confirm("Delete note?")) return;
+    setDeleting(id);
     try {
       const res = await fetch(`/api/notes/${id}`, { method: "DELETE" });
       if (!res.ok) {
@@ -105,11 +108,13 @@ const sharedFiltered = query.trim()
     } catch (err) {
       console.error(err);
       alert("Network error");
+    } finally {
+      setDeleting(null);
     }
   }
   
   async function handleLogout() {
-    setLoading(true);
+    setLoggingOut(true);
     try {
       const res = await fetch("/api/logout", { method: "POST" });
       if (res.ok) {
@@ -117,12 +122,12 @@ const sharedFiltered = query.trim()
         router.push("/TeamNoteTakingApp");
       } else {
         alert("Failed to logout");
+        setLoggingOut(false);
       }
     } catch (err) {
       console.error(err);
       alert("Network error");
-    } finally {
-      setLoading(false);
+      setLoggingOut(false);
     }
   }
 
@@ -132,8 +137,7 @@ const sharedFiltered = query.trim()
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <span>NoteHub</span>
-          <div className={styles.spacer} />
-          <Link href="/TeamNoteTakingApp" className={styles.logoutButton} onClick={handleLogout}>Logout</Link>
+          
         </div>
         <div className={styles.sidebarActions}>
           <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
@@ -218,8 +222,8 @@ const sharedFiltered = query.trim()
               <Link href={`/TeamNoteTakingApp/note/${active.id}`}>
                 Edit
               </Link>
-              <button onClick={() => handleDelete(active.id)} style={{ color: "#ff6b6b" }}>
-                Delete
+              <button onClick={() => handleDelete(active.id)} disabled={deleting === active.id} style={{ color: "#ff6b6b", cursor: deleting === active.id ? 'wait' : 'pointer' }}>
+                {deleting === active.id ? "Deleting…" : "Delete"}
               </button>
             </div>
           )}
