@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import { useLockBodyScroll } from "../useLockBodyScroll";
+// import { getSessionFromCookie } from "@/lib/auth";
 
 type Note = { id: number; title: string; content: string; createdAt?: string };
 
 export default function Dashboard() {
+  // const session = await getSessionFromCookie();
   const router = useRouter();
   const [owned, setOwned] = useState<Note[]>([]);
   const [shared, setShared] = useState<Note[]>([]);
@@ -20,6 +22,9 @@ export default function Dashboard() {
   const [deleting, setDeleting] = useState<number | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
 
+  // if (!session) {
+  //   router.push("/TeamNoteTakingApp");
+  // }
   useLockBodyScroll();
 
   // load all notes (initially all)
