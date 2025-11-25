@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import { useLockBodyScroll } from "../useLockBodyScroll";
+import { useLanguage } from "../context/LanguageContext"
 // import { getSessionFromCookie } from "@/lib/auth";
 
-type Note = { id: number; title: string; content: string; createdAt?: string };
+type Note = { id: number; title: string; content: string; createdAt?: string; tags?: Array<{ tag: { id: number; name: string } }>; };
 
 export default function Dashboard() {
   // const session = await getSessionFromCookie();
@@ -21,6 +22,7 @@ export default function Dashboard() {
   const [notLoggedIn, setNotLoggedIn] = useState(false);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
+  const {lang, setLang } = useLanguage();
 
   // if (!session) {
   //   router.push("/TeamNoteTakingApp");
@@ -167,6 +169,7 @@ const ownedFiltered = query.trim()
 
   return (
     <main className={styles.dashboard}>
+      
       {/* Sidebar */}
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
@@ -175,23 +178,23 @@ const ownedFiltered = query.trim()
         <div className={styles.sidebarActions}>
           <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
             <span>📝</span>
-            <span>Dashboard</span>
+            <span>{lang === "en" ? "Dashboard" : "主页"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/note/new" className={styles.sidebarButton}>
             <span>＋</span>
-            <span>New Note</span>
+            <span>{lang === "en" ? "New Note" : "新笔记"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/tags" className={styles.sidebarButton}>
             <span>#</span>
-            <span>Tags</span>
+            <span>{lang === "en" ? "Tag" : "标签"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/team" className={styles.sidebarButton}>
             <span>#</span>
-            <span>Team</span>
+            <span>{lang === "en" ? "Team" : "队员"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/settings" className={styles.sidebarButton}>
             <span>⚙</span>
-            <span>Settings</span>
+            <span>{lang === "en" ? "Setting" : "设置"}</span>
           </Link>
         </div>
       </aside>
@@ -208,9 +211,9 @@ const ownedFiltered = query.trim()
         </div>
         <div className={styles.list}>
           {loading ? (
-            <div className={styles.noteMeta}>Loading notes…</div>
+            <div className={styles.noteMeta}>{lang === "en" ? "Loading notes…" : "正在加载"}</div>
           ) : ownedFiltered.length === 0 ? (
-            <div className={styles.noteMeta}>No notes</div>
+            <div className={styles.noteMeta}>{lang === "en" ? "No Notes" : "没有笔记"}</div>
           ) : (
             ownedFiltered.map((n) => (
               <div
@@ -223,6 +226,24 @@ const ownedFiltered = query.trim()
                 <div className={styles.notePreview}>
                   {n.content || "No content"}
                 </div>
+                {n.tags && n.tags.length > 0 && (
+                <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginTop: "8px" }}>
+                  {n.tags.map((t) => (
+                    <span key={t.tag.id} style={{
+                      backgroundColor: "#e0e7ff",
+                      color: "#3730a3",
+                      padding: "2px 8px",
+                      borderRadius: "12px",
+                      fontSize: "12px",
+                      fontWeight: "500"
+                    }}>
+                      #{t.tag.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+
                 <div className={styles.noteMeta}>
                   {n.createdAt ? new Date(n.createdAt).toLocaleString() : ""}
                 </div>
@@ -252,22 +273,22 @@ const ownedFiltered = query.trim()
       <section className={styles.contentPane}>
         <div className={styles.contentHeader}>
           <div className={styles.contentTitle}>
-            {active?.title || "Select a note"}
+            {active?.title || (lang === "en" ? "Select a note" : "选择一个笔记")}
           </div>
           {active && (
             <div className={styles.row}>
               <Link href={`/TeamNoteTakingApp/note/${active.id}`}>
-                Edit
+                {lang === "en" ? "Edit" : "编辑"}
               </Link>
               <button className={styles.row} onClick={() => handleTrash(active.id)} style={{ color: "#ff6b6b" }}>
-                Delete
+                {lang === "en" ? "Delete" : "删除"}
               </button>
             </div>
           )}
         </div>
         <div className={styles.contentBody}>
           {!active ? (
-            <div className={styles.emptyState}>Choose a note from the list to view its contents.</div>
+            <div className={styles.emptyState}>{lang === "en" ? "Choose a note from the list to view its contents." : "从旁边选择一个笔记来查看"}</div>
           ) : (
             <div className={styles.surface}>
                 <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{active.content || "No content"}</div>

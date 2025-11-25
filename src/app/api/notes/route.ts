@@ -30,6 +30,11 @@ export async function GET(req: Request) {
       const tagId = Number(tagIdStr);
       if (Number.isNaN(tagId)) return NextResponse.json({ error: "Invalid tagId" }, { status: 400 });
 
+      const tag = await prisma.tag.findUnique({
+        where: { id: tagId}, select : { id: true, name: true, userId: true },
+      });
+      if (!tag) return NextResponse.json({ error: "Tag not found" }, { status: 404 });
+
       // 找出屬於此 user 的 notes (owner) AND shared notes where the tag is attached
       const [owned, shared] = await Promise.all([
         prisma.note.findMany({
@@ -38,7 +43,14 @@ export async function GET(req: Request) {
             tags: { some: { tagId } },
             deletedAt: null,
           },
-          select: { id: true, title: true, content: true, createdAt: true, userId: true },
+          select: { 
+            id: true, 
+            title: true, 
+            content: true, 
+            createdAt: true, 
+            userId: true ,
+            tags: { include: { tag: { select: { id: true, name: true } } } },
+          },
           orderBy: { createdAt: "desc" },
         }),
         prisma.note.findMany({
@@ -49,7 +61,15 @@ export async function GET(req: Request) {
             userId: { not: session.userId },
             deletedAt: null,
           },
-          select: { id: true, title: true, content: true, createdAt: true, userId: true },
+          select: { 
+            id: true, 
+            title: true, 
+            content: true, 
+            createdAt: true, 
+            userId: true,
+            tags: { include: { tag: { select: { id: true, name: true } } } },
+          },
+            
           orderBy: { createdAt: "desc" },
         }),
       ]);
@@ -61,12 +81,26 @@ export async function GET(req: Request) {
     const [ownedAll, sharedAll] = await Promise.all([
       prisma.note.findMany({
         where: { userId: session.userId, deletedAt: null },
-        select: { id: true, title: true, content: true, createdAt: true, userId: true },
+        select: { 
+          id: true, 
+          title: true, 
+          content: true, 
+          createdAt: true, 
+          userId: true ,
+          tags: { include: { tag: { select: { id: true, name: true } } } },
+        },
         orderBy: { createdAt: "desc" },
       }),
       prisma.note.findMany({
         where: { accesses: { some: { userId: session.userId } }, userId: { not: session.userId }, deletedAt: null },
-        select: { id: true, title: true, content: true, createdAt: true, userId: true },
+        select: { 
+          id: true, 
+          title: true, 
+          content: true, 
+          createdAt: true, 
+          userId: true ,
+          tags: { include: { tag: { select: { id: true, name: true } } } },
+        },
         orderBy: { createdAt: "desc" },
       }),
     ]);

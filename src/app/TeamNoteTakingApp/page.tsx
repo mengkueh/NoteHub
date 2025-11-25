@@ -64,6 +64,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./login&register.module.css";
+// import { useLanguage } from "../context/LanguageContext"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -116,6 +117,10 @@ export default function LoginPage() {
 
   return (
     <main className={styles.main}>
+      {/* <div>
+        <button onClick={() => setLang("en")}>English</button>
+      <button onClick={() => setLang("zh")}>中文</button>
+      </div> */}
       <div className={styles.card}>
         <div className={styles.headerIcon}>🔐</div>
         <h1 className={styles.title}>WELCOME!</h1>

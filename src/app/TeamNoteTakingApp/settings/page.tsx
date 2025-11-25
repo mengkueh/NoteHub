@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./settingspage.module.css";
 import styles2 from "../login&register.module.css";
+import { useLanguage } from "../context/LanguageContext"
 
 type TrashedNote = {
   id: number;
@@ -20,6 +21,7 @@ export default function SettingPage() {
   const [loading, setLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [items, setItems] = useState<TrashedNote[]>([]);
+  const {lang, setLang } = useLanguage();
  
   useEffect(() => {
     fetch("/api/trash")
@@ -71,7 +73,7 @@ export default function SettingPage() {
           ←
         </button>
 
-        <h1 className={styles.settingsTitle}>Settings</h1>
+        <h1 className={styles.settingsTitle}>{lang === "en" ? "Setting" : "设置"}</h1>
 
         <button
           onClick={handleLogout}
@@ -95,6 +97,12 @@ export default function SettingPage() {
         ))}
       </ul>
     </div>
+      </div>
+      <div>
+        <h1>{lang === "en" ? "Home" : "主页"}</h1>
+
+      <button onClick={() => setLang("en")}>English</button>
+      <button onClick={() => setLang("zh")}>中文</button>
       </div>
     </main>
   );
