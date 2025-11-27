@@ -23,7 +23,7 @@ export default function NewNotePage() {
   const [loadingTags, setLoadingTags] = useState(true);
   const [showAddTag, setShowAddTag] = useState(false);
   const {lang, setLang } = useLanguage();
-
+  const [isClient, setIsClient] = useState(false);
 
   
   useLockBodyScroll();
@@ -101,6 +101,10 @@ export default function NewNotePage() {
     () => tags.filter((tag) => selected.includes(tag.id)),
     [tags, selected]
   );
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <main className={styles.dashboard}>
@@ -193,7 +197,7 @@ export default function NewNotePage() {
                 {lang === "en" ? "Content" : "内容"}
               </label>
               
-              <RichEditor value={content} onChange={(html) => setContent(html)}/>
+              {isClient && <RichEditor value={content} onChange={(html) => setContent(html)}/>}
             </div>
 
             <div className={styles.fieldGroup}>
