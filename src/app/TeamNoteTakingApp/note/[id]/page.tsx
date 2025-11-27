@@ -7,6 +7,8 @@ import { useEffect, useMemo, useState } from "react";
 import styles from "../../home/page.module.css";
 import { useLockBodyScroll } from "../../useLockBodyScroll";
 import ShareByEmail from "@/components/ShareByEmail";
+import { useLanguage } from "../../context/LanguageContext"
+import RichEditor from "@/components/RichEditor";
 
 type Tag = { id: number; name: string };
 type Access = { id: number; role: string; user: { id: string; email: string; displayName?: string } };
@@ -34,7 +36,7 @@ export default function EditNotePage() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [noteDetail, setNoteDetail] = useState<NoteDetail | null>(null);
-
+  const {lang, setLang } = useLanguage();
   useLockBodyScroll();
 
   // load tags (for the tag selector)
@@ -160,19 +162,23 @@ export default function EditNotePage() {
         <div className={styles.sidebarActions}>
           <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
             <span>📝</span>
-            <span>Dashboard</span>
+            <span>{lang === "en" ? "Dashboard" : "主页"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/note/new" className={styles.sidebarButton}>
             <span>＋</span>
-            <span>New Note</span>
+            <span>{lang === "en" ? "New Note" : "新笔记"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/tags" className={styles.sidebarButton}>
             <span>#</span>
-            <span>Tags</span>
+            <span>{lang === "en" ? "Tag" : "标签"}</span>
+          </Link>
+          <Link href="/TeamNoteTakingApp/team" className={styles.sidebarButton}>
+            <span>#</span>
+            <span>{lang === "en" ? "Team" : "队员"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/settings" className={styles.sidebarButton}>
             <span>⚙</span>
-            <span>Settings</span>
+            <span>{lang === "en" ? "Setting" : "设置"}</span>
           </Link>
 
           {/* Invite button / component: ShareByEmail should POST to /api/notes/[id]/share or similar */}
@@ -190,16 +196,16 @@ export default function EditNotePage() {
       <section className={styles.listPane}>
         <div className={styles.listHeader}>
           <div>
-            <p className={styles.sectionTitle}>Tags</p>
-            <p className={styles.sectionSubtitle}>Choose categories for this note</p>
+            <p className={styles.sectionTitle}>{lang === "en" ? "Tags" : "标签"}</p>
+            <p className={styles.sectionSubtitle}>{lang === "en" ? "Choose Tags For This Note" : "为此笔记选择标签"}</p>
           </div>
         </div>
 
         <div className={styles.list}>
           {loadingTags ? (
-            <div className={styles.listEmpty}>Loading tags…</div>
+            <div className={styles.listEmpty}>{lang === "en" ? "Loading Tags..." : "正在加载标签..."}</div>
           ) : allTags.length === 0 ? (
-            <div className={styles.listEmpty}>No tags yet. Create one from the Tags page.</div>
+            <div className={styles.listEmpty}>{lang === "en" ? "No tags yet. Create one from the Tags page!" : "您还没有标签， 去标签页创造一个吧！"}</div>
           ) : (
             allTags.map((tag) => {
               const isSelected = selected.includes(tag.id);
@@ -211,7 +217,7 @@ export default function EditNotePage() {
                   className={`${styles.tagOption} ${isSelected ? styles.tagOptionSelected : ""}`}
                 >
                   <span className={styles.tagOptionLabel}>{tag.name}</span>
-                  <span className={styles.tagOptionCount}>{isSelected ? "Selected" : "Tap to add"}</span>
+                  <span className={styles.tagOptionCount}>{isSelected ? (lang === "en" ? "Selected" : "已选择") : (lang === "en" ? "Tap To Add" : "点击以选择")}</span>
                 </button>
               );
             })
@@ -221,29 +227,29 @@ export default function EditNotePage() {
 
       <section className={styles.contentPane}>
         <div className={styles.contentHeader}>
-          <div className={styles.contentTitle}>Edit Note</div>
+          <div className={styles.contentTitle}>{lang === "en" ? "Edit Note" : "编辑笔记"}</div>
         </div>
 
         <div className={`${styles.contentBody} ${styles.contentScroll}`}>
           {error ? (
             <div className={styles.listEmpty}>{error}</div>
           ) : loadingNote ? (
-            <div className={styles.listEmpty}>Loading note…</div>
+            <div className={styles.listEmpty}>{lang === "en" ? "Loading Note..." : "正在加载笔记..."}</div>
           ) : (
             <>
               <div className={styles.surface}>
                 <div style={{ marginBottom: 12 }}>
-                  <strong>Owner:</strong> <span>{ownerEmail}</span>
+                  <strong>{lang === "en" ? "Owner" : "作者"}</strong> <span>{ownerEmail}</span>
                 </div>
 
                 <div style={{ marginBottom: 12 }}>
-                  <strong>Collaborators:</strong>{" "}
-                  {collaborators.length === 0 ? <span>None</span> : <span>{collaborators.join(", ")}</span>}
+                  <strong>{lang === "en" ? "Collaborators: " : "合作者: "}</strong>{" "}
+                  {collaborators.length === 0 ? <span>{lang === "en" ? "None" : "无"}</span> : <span>{collaborators.join(", ")}</span>}
                 </div>
 
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel} htmlFor="note-title">
-                    Title
+                    {lang === "en" ? "Title" : "标题"}
                   </label>
                   <input
                     id="note-title"
@@ -257,22 +263,24 @@ export default function EditNotePage() {
 
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel} htmlFor="note-content">
-                    Content
+                    {lang === "en" ? "Content" : "内容"}
                   </label>
-                  <textarea
+                  <RichEditor value={content} onChange={(html) => setContent(html)}/>
+                  
+                  {/* <textarea
                     id="note-content"
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     className={styles.textarea}
                     rows={12}
                     placeholder="Add your details here…"
-                  />
+                  /> */}
                 </div>
 
                 <div className={styles.fieldGroup}>
-                  <span className={styles.fieldLabel}>Selected tags</span>
+                  <span className={styles.fieldLabel}>{lang === "en" ? "Selected Tags" : "已选择的标签"}</span>
                   {selectedTags.length === 0 ? (
-                    <span className={styles.sectionSubtitle}>No tags selected yet.</span>
+                    <span className={styles.sectionSubtitle}>{lang === "en" ? "No Tags Selected Yet." : "没有选择的标签"}</span>
                   ) : (
                     <div className={styles.pillGrid}>
                       {selectedTags.map((tag) => (
@@ -287,10 +295,10 @@ export default function EditNotePage() {
 
               <div className={styles.buttonRow}>
                 <button type="button" className={`${styles.button} ${styles.buttonPrimary}`} onClick={handleSave} disabled={saving}>
-                  {saving ? "Saving…" : "Save Note"}
+                  {saving ? "Saving…" : (lang === "en" ? "Save Note" : "保存")}
                 </button>
                 <button type="button" className={styles.button} onClick={() => router.push("/TeamNoteTakingApp/home")} disabled={saving}>
-                  Cancel
+                  {lang === "en" ? "Cancel" : "取消"}
                 </button>
               </div>
             </>

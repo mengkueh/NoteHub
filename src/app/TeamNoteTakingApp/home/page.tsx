@@ -7,6 +7,7 @@ import styles from "./page.module.css";
 import { useLockBodyScroll } from "../useLockBodyScroll";
 import { useLanguage } from "../context/LanguageContext"
 // import { getSessionFromCookie } from "@/lib/auth";
+import RenderHtmlClient from "@/components/RenderHtmlClient";
 
 type Note = { id: number; title: string; content: string; createdAt?: string; tags?: Array<{ tag: { id: number; name: string } }>; };
 
@@ -204,7 +205,7 @@ const ownedFiltered = query.trim()
         <div className={styles.listHeader}>
           <input
             className={styles.search}
-            placeholder="Search all notes"
+            placeholder={lang === "en" ? "Search Note" : "搜索笔记"}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -224,7 +225,10 @@ const ownedFiltered = query.trim()
               >
                 <h3 className={styles.noteTitle}>{n.title || "Untitled"}</h3>
                 <div className={styles.notePreview}>
-                  {n.content || "No content"}
+                  <RenderHtmlClient
+                    html={n.content || "<p>No content</p>"}
+                    className="quill-content"
+                  />
                 </div>
                 {n.tags && n.tags.length > 0 && (
                 <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginTop: "8px" }}>
@@ -291,7 +295,10 @@ const ownedFiltered = query.trim()
             <div className={styles.emptyState}>{lang === "en" ? "Choose a note from the list to view its contents." : "从旁边选择一个笔记来查看"}</div>
           ) : (
             <div className={styles.surface}>
-                <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{active.content || "No content"}</div>
+              <RenderHtmlClient
+                html={active.content || "<p>No content</p>"}
+                className="quill-content"
+              />
             </div>
           )}
         </div>

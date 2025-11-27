@@ -6,6 +6,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "../home/page.module.css";
 import { useLockBodyScroll } from "../useLockBodyScroll";
+import { useLanguage } from "../context/LanguageContext"
+
+
 
 type Tag = { id: number; name: string; notes?: { note: { id: number; title: string } }[] };
 type Note = { id: number; title: string; content?: string };
@@ -21,7 +24,9 @@ export default function TagsPage() {
   const [tagName, setTagName] = useState("");
   const [selectedNoteIds, setSelectedNoteIds] = useState<number[]>([]);
   const [creating, setCreating] = useState(false);
+  const {lang, setLang } = useLanguage();
 
+  
   useLockBodyScroll();
 
   useEffect(() => {
@@ -129,19 +134,23 @@ export default function TagsPage() {
         <div className={styles.sidebarActions}>
           <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
             <span>📝</span>
-            <span>Dashboard</span>
+            <span>{lang === "en" ? "Dashboard" : "主页"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/note/new" className={styles.sidebarButton}>
             <span>＋</span>
-            <span>New Note</span>
+            <span>{lang === "en" ? "New Note" : "新笔记"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/tags" className={styles.sidebarButton}>
             <span>#</span>
-            <span>Tags</span>
+            <span>{lang === "en" ? "Tag" : "标签"}</span>
+          </Link>
+          <Link href="/TeamNoteTakingApp/team" className={styles.sidebarButton}>
+            <span>#</span>
+            <span>{lang === "en" ? "Team" : "队员"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/settings" className={styles.sidebarButton}>
             <span>⚙</span>
-            <span>Settings</span>
+            <span>{lang === "en" ? "Setting" : "设置"}</span>
           </Link>
         </div>
       </aside>
@@ -149,22 +158,22 @@ export default function TagsPage() {
       <section className={styles.listPane}>
         <div className={styles.listHeader}>
           <div>
-            <p className={styles.sectionTitle}>All tags</p>
+            <p className={styles.sectionTitle}>{lang === "en" ? "All Tags" : "所有标签"}</p>
             <p className={styles.sectionSubtitle}>
-              {loadingTags ? "Loading…" : tagCount === 0 ? "No tags yet" : `${tagCount} tag${tagCount === 1 ? "" : "s"}`}
+              {loadingTags ? (lang === "en" ? "Loading" : "正在加载") : tagCount === 0 ? (lang === "en" ? "No Tags Yet." : "没有标签.") : `${tagCount} ${tagCount === 1 ? "" : (lang === "en" ? "Tags" : "个标签")}`}
             </p>
           </div>
           <div className={styles.spacer} />
             <button type="button" className={`${styles.button} ${styles.refreshButton}`} onClick={refreshTags} disabled={loadingTags}>
-              Refresh
+              {lang === "en" ? "Refresh" : "刷新"}
             </button>
         </div>
 
         <div className={styles.list}>
           {loadingTags ? (
-            <div className={styles.listEmpty}>Loading tags…</div>
+            <div className={styles.listEmpty}>{lang === "en" ? "Loading Tags..." : "正在加载标签"}</div>
           ) : tags.length === 0 ? (
-            <div className={styles.listEmpty}>No tags yet. Create one on the right.</div>
+            <div className={styles.listEmpty}>{lang === "en" ? "No tags yet. Create one from the Tags page!" : "您还没有标签， 去标签页创造一个吧！"}</div>
           ) : (
             tags
               .slice()
@@ -190,8 +199,8 @@ export default function TagsPage() {
                     <span className={styles.tagOptionLabel}>{tag.name}</span>
                     <span className={styles.tagOptionCount}>
                       {(tag.notes?.length ?? 0) === 1
-                        ? "1 note"
-                        : `${tag.notes?.length ?? 0} notes`}
+                        ? (lang === "en" ? "1 Note" : "一个笔记")
+                        : `${tag.notes?.length ?? 0} ${lang === "en" ? "Notes" : "个笔记"}`}
                     </span>
                   </Link>
                 );
@@ -202,14 +211,14 @@ export default function TagsPage() {
 
       <section className={styles.contentPane}>
         <div className={styles.contentHeader}>
-          <div className={styles.contentTitle}>Create a tag</div>
+          <div className={styles.contentTitle}>{lang === "en" ? "Create a Tag" : "创新标签"}</div>
         </div>
 
         <div className={`${styles.contentBody} ${styles.contentScroll}`}>
           <div className={styles.surface}>
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel} htmlFor="tag-name-input">
-                Tag name
+                {lang === "en" ? "Tag Name" : "标签名字"}
               </label>
               <input
                 id="tag-name-input"
@@ -222,12 +231,12 @@ export default function TagsPage() {
             </div>
 
             <div className={styles.fieldGroup}>
-              <span className={styles.fieldLabel}>Attach notes</span>
+              <span className={styles.fieldLabel}>{lang === "en" ? "Attached Note:" : "选择的笔记"}</span>
               <div className={`${styles.surface} ${styles.surfaceDense}`} style={{ maxHeight: 280, overflow: "auto" }}>
                 {loadingNotes ? (
-                  <div className={styles.listEmpty}>Loading notes…</div>
+                  <div className={styles.listEmpty}>{lang === "en" ? "Loading notes..." : "正在加载笔记"}</div>
                 ) : owned.length === 0 ? (
-                  <div className={styles.listEmpty}>No notes yet. Create one first.</div>
+                  <div className={styles.listEmpty}>{lang === "en" ? "No notes yet. Create one first." : "还没有笔记, 去创新一个吧!"}</div>
                 ) : (
                   owned.map((note) => {
                     const isChecked = selectedNoteIds.includes(note.id);
@@ -300,7 +309,7 @@ export default function TagsPage() {
                 onClick={handleCreateTag}
                 disabled={creating}
               >
-                {creating ? "Creating…" : "Create tag"}
+                {creating ? "Creating…" : (lang === "en" ? "Create Tag" : "创建标签")}
               </button>
               <button
                 type="button"
@@ -308,7 +317,7 @@ export default function TagsPage() {
                 onClick={resetForm}
                 disabled={creating}
               >
-                Reset
+                {lang === "en" ? "Reset" : "重置"}
               </button>
             </div>
           </div>

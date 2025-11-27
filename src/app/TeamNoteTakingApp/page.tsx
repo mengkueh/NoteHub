@@ -1,76 +1,15 @@
-// 'use client';
-// import { useState } from 'react';
-// import { useRouter } from 'next/navigation';
-
-// export default function LoginPage() {
-//   const [email, setEmail] = useState('');
-//   const [password, setPassword] = useState('');
-//   const [error, setError] = useState('');
-//   const router = useRouter();
-
-//   async function handleLogin(e: React.FormEvent) {
-//     e.preventDefault();
-//     setError('');
-
-//     const res = await fetch('/api/login', {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify({ email, password }),
-//     });
-
-//     const data = await res.json();
-
-//     if (data.success) {
-//       router.push('/home');
-//     } else {
-//       setError(data.message || 'Login failed');
-//     }
-//   }
-
-//   return (
-//     <main style={{ color: 'black', backgroundColor: 'White', padding: 20, fontFamily: 'sans-serif', textAlign: 'center', alignItems: 'center' }}>
-//       <div className='m-[10%]'>
-//         <h1 className='text-6xl'>WELCOME!</h1>
-//         <h1 className='text-4xl'>Team Note Taking App</h1>
-//       </div>
-//       <form className='text-xl' onSubmit={handleLogin}>
-//         <p>Email:</p>
-//         <input
-//           type="email"
-//           // placeholder="Email"
-//           value={email}
-//           onChange={e => setEmail(e.target.value)}
-//           style={{ backgroundColor: 'lightgrey', width: '100%', marginBottom: 8 }}
-//         />
-//         <p>Password:</p>
-//         <input
-//           type="password"
-//           // placeholder="Password"
-//           value={password}
-//           onChange={e => setPassword(e.target.value)}
-//           style={{ backgroundColor: 'lightgrey', width: '100%' ,marginBottom: 8 }}
-//         />
-//         <button className='display: px-[2%] block border rounded mx-auto cursor-pointer hover:bg-blue-600 transition-all duration-300 ease-in-out' type="submit">Login</button>
-//         <button className='display: px-[2%] mt-[2%] block border rounded mx-auto cursor-pointer hover:bg-blue-600 transition-all duration-300 ease-in-out' onClick={() => router.push('/TeamNoteTakingApp/register')}>Register</button>
-//       </form>
-      
-//       {error && <p style={{ color: 'red' }}>{error}</p>}
-//     </main>
-//   );
-// }
-
-
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./login&register.module.css";
-// import { useLanguage } from "../context/LanguageContext"
+import { useLanguage } from "./context/LanguageContext"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const {lang, setLang } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,15 +62,15 @@ export default function LoginPage() {
       </div> */}
       <div className={styles.card}>
         <div className={styles.headerIcon}>🔐</div>
-        <h1 className={styles.title}>WELCOME!</h1>
-        <h2 className={styles.subtitle}>Sign In to Your Account</h2>
+        <h1 className={styles.title}>{lang === "en" ? "WELCOME!" : "欢迎光临！"}</h1>
+        <h2 className={styles.subtitle}>{lang === "en" ? "Sign In to Your Account" : "登录您的账号"}</h2>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div>
-            <label className={styles.label}>Email</label>
+            <label className={styles.label}>{lang === "en" ? "Email" : "邮箱地址"}</label>
             <input
               type="email"
-              placeholder="Enter your email"
+              placeholder={lang === "en" ? "Enter Your Email" : "请填入邮箱地址"}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -140,10 +79,10 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className={styles.label}>Password</label>
+            <label className={styles.label}>{lang === "en" ? "Password" : "密码"}</label>
             <input
               type="password"
-              placeholder="Enter your password"
+              placeholder={lang === "en" ? "Enter Your Password" : "请输入密码"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -152,7 +91,7 @@ export default function LoginPage() {
           </div>
 
           <button type="submit" className={styles.primaryButton} disabled={isLoading} aria-busy={isLoading}>
-            Login
+            {lang === "en" ? "Login" : "登录"}
           </button>
 
           <button
@@ -162,9 +101,15 @@ export default function LoginPage() {
             disabled={isLoading}
             aria-busy={isLoading}
           >
-            Register
+            {lang === "en" ? "Register" : "注册账号"}
           </button>
         </form>
+        <div>
+          <h1>{lang === "en" ? "Home" : "主页"}</h1>
+
+          <button onClick={() => setLang("en")}>English</button>
+          <button onClick={() => setLang("zh")}>中文</button>
+        </div>
       </div>
     </main>
   );
