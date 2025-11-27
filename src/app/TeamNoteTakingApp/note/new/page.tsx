@@ -10,6 +10,7 @@ import { useLanguage } from "../../context/LanguageContext"
 import AddTag from "@/components/AddTag";
 import RichEditor from "@/components/RichEditor";
 import RenderHtmlClient from "@/components/RenderHtmlClient";
+import dynamic from "next/dynamic";
 
 type Tag = { id: number; name: string };
 
@@ -24,6 +25,7 @@ export default function NewNotePage() {
   const [showAddTag, setShowAddTag] = useState(false);
   const {lang, setLang } = useLanguage();
   const [isClient, setIsClient] = useState(false);
+const RichEditor = dynamic(() => import("@/components/RichEditor"), { ssr: false });
 
   
   useLockBodyScroll();
@@ -102,9 +104,9 @@ export default function NewNotePage() {
     [tags, selected]
   );
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  // useEffect(() => {
+  //   setIsClient(true);
+  // }, []);
 
   return (
     <main className={styles.dashboard}>
@@ -197,7 +199,7 @@ export default function NewNotePage() {
                 {lang === "en" ? "Content" : "内容"}
               </label>
               
-              {isClient && <RichEditor value={content} onChange={(html) => setContent(html)}/>}
+              <RichEditor value={content} onChange={(html) => setContent(html)}/>
             </div>
 
             <div className={styles.fieldGroup}>
