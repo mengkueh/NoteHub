@@ -15,15 +15,15 @@ export default function Dashboard() {
   // const session = await getSessionFromCookie();
   const router = useRouter();
   const [owned, setOwned] = useState<Note[]>([]);
-  const [shared, setShared] = useState<Note[]>([]);
+  const [, setShared] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState<Note | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [notLoggedIn, setNotLoggedIn] = useState(false);
-  const [deleting, setDeleting] = useState<number | null>(null);
-  const [loggingOut, setLoggingOut] = useState(false);
-  const {lang, setLang } = useLanguage();
+  const [, setDeleting] = useState<number | null>(null);
+  const [, setLoggingOut] = useState(false);
+  const {lang } = useLanguage();
 
   // if (!session) {
   //   router.push("/TeamNoteTakingApp");
@@ -101,25 +101,25 @@ const ownedFiltered = query.trim()
 //     : shared; 
     
 
-  async function handleDelete(id: number) {
-    if (!confirm("Delete note?")) return;
-    setDeleting(id);
-    try {
-      const res = await fetch(`/api/notes/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "Unknown" }));
-        alert(err.error || "Failed to delete");
-        return;
-      }
-      setOwned((prev) => prev.filter((n) => n.id !== id));
-      setShared((prev) => prev.filter((n) => n.id !== id));
-    } catch (err) {
-      console.error(err);
-      alert("Network error");
-    } finally {
-      setDeleting(null);
-    }
-  }
+  // async function handleDelete(id: number) {
+  //   if (!confirm("Delete note?")) return;
+  //   setDeleting(id);
+  //   try {
+  //     const res = await fetch(`/api/notes/${id}`, { method: "DELETE" });
+  //     if (!res.ok) {
+  //       const err = await res.json().catch(() => ({ error: "Unknown" }));
+  //       alert(err.error || "Failed to delete");
+  //       return;
+  //     }
+  //     setOwned((prev) => prev.filter((n) => n.id !== id));
+  //     setShared((prev) => prev.filter((n) => n.id !== id));
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Network error");
+  //   } finally {
+  //     setDeleting(null);
+  //   }
+  // }
 
   async function handleTrash(noteId: number) {
   if (!confirm("Move this note to Trash?")) return;
@@ -150,23 +150,23 @@ const ownedFiltered = query.trim()
 
 
   
-  async function handleLogout() {
-    setLoggingOut(true);
-    try {
-      const res = await fetch("/api/logout", { method: "POST" });
-      if (res.ok) {
-        // redirect to login
-        router.push("/TeamNoteTakingApp");
-      } else {
-        alert("Failed to logout");
-        setLoggingOut(false);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Network error");
-      setLoggingOut(false);
-    }
-  }
+  // async function handleLogout() {
+  //   setLoggingOut(true);
+  //   try {
+  //     const res = await fetch("/api/logout", { method: "POST" });
+  //     if (res.ok) {
+  //       // redirect to login
+  //       router.push("/TeamNoteTakingApp");
+  //     } else {
+  //       alert("Failed to logout");
+  //       setLoggingOut(false);
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Network error");
+  //     setLoggingOut(false);
+  //   }
+  // }
 
   return (
     <main className={styles.dashboard}>

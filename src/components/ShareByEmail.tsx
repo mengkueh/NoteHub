@@ -16,7 +16,7 @@ export default function ShareByEmail({
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"editor" | "viewer">("editor");
   const [loading, setLoading] = useState(false);
-  const {lang, setLang } = useLanguage();
+  const {lang} = useLanguage();
 
   async function handleShare() {
     if (!email.trim()) return alert("Please enter an email.");

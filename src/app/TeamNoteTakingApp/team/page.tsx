@@ -12,14 +12,14 @@ type Note = { id: number; title: string; content: string; createdAt?: string };
 export default function TeamPage() {
     
 const router = useRouter();
-  const [owned, setOwned] = useState<Note[]>([]);
+  const [, setOwned] = useState<Note[]>([]);
   const [shared, setShared] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState<Note | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [notLoggedIn, setNotLoggedIn] = useState(false);
-  const {lang, setLang } = useLanguage();
+  const {lang} = useLanguage();
 
   useLockBodyScroll();
 

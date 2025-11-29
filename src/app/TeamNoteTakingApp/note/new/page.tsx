@@ -8,8 +8,6 @@ import styles from "../../home/page.module.css";
 import { useLockBodyScroll } from "../../useLockBodyScroll";
 import { useLanguage } from "../../context/LanguageContext"
 import AddTag from "@/components/AddTag";
-import RichEditor from "@/components/RichEditor";
-import RenderHtmlClient from "@/components/RenderHtmlClient";
 import dynamic from "next/dynamic";
 
 type Tag = { id: number; name: string };
@@ -24,8 +22,7 @@ export default function NewNotePage() {
   const [loadingTags, setLoadingTags] = useState(true);
   const [showAddTag, setShowAddTag] = useState(false);
   const {lang, setLang } = useLanguage();
-  const [isClient, setIsClient] = useState(false);
-const RichEditor = dynamic(() => import("@/components/RichEditor"), { ssr: false });
+  const RichEditor = dynamic(() => import("@/components/RichEditor"), { ssr: false });
 
   
   useLockBodyScroll();

@@ -24,7 +24,7 @@ export default function TagsPage() {
   const [tagName, setTagName] = useState("");
   const [selectedNoteIds, setSelectedNoteIds] = useState<number[]>([]);
   const [creating, setCreating] = useState(false);
-  const {lang, setLang } = useLanguage();
+  const {lang} = useLanguage();
 
   
   useLockBodyScroll();

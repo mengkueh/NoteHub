@@ -33,7 +33,7 @@ export default function RegisterPage() {
       });
 
       if (res.ok) {
-        const newPost = await res.json();
+        // const newPost = await res.json();
         // Redirect to login page after successful registration
         router.push('/TeamNoteTakingApp');
       } else {

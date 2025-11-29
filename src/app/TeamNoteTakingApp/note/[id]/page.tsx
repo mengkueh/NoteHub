@@ -36,7 +36,7 @@ export default function EditNotePage() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [noteDetail, setNoteDetail] = useState<NoteDetail | null>(null);
-  const {lang, setLang } = useLanguage();
+  const {lang } = useLanguage();
   useLockBodyScroll();
 
   // load tags (for the tag selector)
@@ -234,12 +234,12 @@ export default function EditNotePage() {
           {error ? (
             <div className={styles.listEmpty}>{error}</div>
           ) : loadingNote ? (
-            <div className={styles.listEmpty}>{lang === "en" ? "Loading Note..." : "正在加载笔记..."}</div>
+            <div className={styles.listEmpty}>{lang === "en" ? "Loading Notes..." : "正在加载笔记..."}</div>
           ) : (
             <>
               <div className={styles.surface}>
                 <div style={{ marginBottom: 12 }}>
-                  <strong>{lang === "en" ? "Owner" : "作者: "}</strong> <span>{ownerEmail}</span>
+                  <strong>{lang === "en" ? "Owner: " : "作者: "}</strong> <span>{ownerEmail}</span>
                 </div>
 
                 <div style={{ marginBottom: 12 }}>

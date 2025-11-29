@@ -14,15 +14,15 @@ export default function TagNotesPage() {
   const { id } = useParams();
   const router = useRouter();
   const slug = Array.isArray(id) ? id[0] : id ?? "";
-  const[owned, setOwned] = useState<Note[]>([]);
-  const[shared, setShared] = useState<Note[]>([]);
+  const [owned, setOwned] = useState<Note[]>([]);
+  const [, setShared] = useState<Note[]>([]);
   // const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<Note | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tagName, setTagName] = useState<string>("");
   const [tagId, setTagId] = useState<number | null>(null);
-  const {lang, setLang } = useLanguage();
+  const {lang } = useLanguage();
 
 
   useLockBodyScroll();

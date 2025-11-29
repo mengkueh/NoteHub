@@ -19,7 +19,7 @@ type TrashedNote = {
 export default function SettingPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
   const [items, setItems] = useState<TrashedNote[]>([]);
   const {lang, setLang } = useLanguage();
  
