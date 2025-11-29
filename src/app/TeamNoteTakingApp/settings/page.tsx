@@ -80,18 +80,18 @@ export default function SettingPage() {
           disabled={loading}
           className={styles.logoutButton}
         >
-          {loading ? "Logging out..." : "Logout"}
+          {loading ? (lang === "en" ? "Loggin Out..." : "正在登出") : (lang === "en" ? "Logout" : "登出")}
         </button>
         <div>
-      <h2>Trash</h2>
-      {items.length === 0 ? <div>No recently deleted notes.</div> : null}
+      <h2>{lang === "en" ? "Recently Deleted Trash" : "最近删除的笔记"}</h2>
+      {items.length === 0 ? <div>{lang === "en" ? "No Recently Deleted Notes." : "没有最近删除的笔记"}</div> : null}
       <ul>
         {items.map((it) => (
           <li key={it.id}>
-            <b>{it.title}</b> — deleted {new Date(it.deletedAt).toLocaleString()} — purges in {it.daysLeft} day(s)
+            <b>{it.title}</b> {lang === "en" ? "- Deleted At: " : "- 删除日期"} {new Date(it.deletedAt).toLocaleString()} {lang === "en" ? "- Purges In" : "删除倒数"} {it.daysLeft} day(s)
             <div>
-              <button onClick={() => restore(it.id)}>Restore</button>
-              <button onClick={() => permanentDelete(it.id)}>Delete permanently</button>
+              <button onClick={() => restore(it.id)}>{lang === "en" ? "Restore" : "恢复"}</button>
+              <button onClick={() => permanentDelete(it.id)}>{lang === "en" ? "Delete Permanently" : "永久删除"}</button>
             </div>
           </li>
         ))}

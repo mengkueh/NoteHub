@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import styles from "../../home/page.module.css";
 import { useLockBodyScroll } from "../../useLockBodyScroll";
+import { useLanguage } from "../../context/LanguageContext"
 
 type Note = { id: number; title: string; content: string; createdAt?: string };
 type Tag = { id: number; name: string };
@@ -21,6 +22,8 @@ export default function TagNotesPage() {
   const [error, setError] = useState<string | null>(null);
   const [tagName, setTagName] = useState<string>("");
   const [tagId, setTagId] = useState<number | null>(null);
+  const {lang, setLang } = useLanguage();
+
 
   useLockBodyScroll();
 
@@ -132,8 +135,8 @@ export default function TagNotesPage() {
 
 
   const tagLabel = useMemo(() => {
-    if (!slug) return "Tag";
-    return tagName ? `Tag: ${tagName}` : "Tag: ...";
+    if (!slug) return (lang === "en" ? "Tag: " : "标签名称: ");
+    return tagName ? `${lang === "en" ? "Tag: " : "标签名称: "} ${tagName}` : (lang === "en" ? "Tag: " : "标签名称: ");
   }, [slug, tagName]);
 
   return (
@@ -145,19 +148,23 @@ export default function TagNotesPage() {
         <div className={styles.sidebarActions}>
           <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
             <span>📝</span>
-            <span>Dashboard</span>
+            <span>{lang === "en" ? "Dashboard" : "主页"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/note/new" className={styles.sidebarButton}>
             <span>＋</span>
-            <span>New Note</span>
+            <span>{lang === "en" ? "New Note" : "新笔记"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/tags" className={styles.sidebarButton}>
             <span>#</span>
-            <span>Tags</span>
+            <span>{lang === "en" ? "Tag" : "标签"}</span>
+          </Link>
+          <Link href="/TeamNoteTakingApp/team" className={styles.sidebarButton}>
+            <span>#</span>
+            <span>{lang === "en" ? "Team" : "队员"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/settings" className={styles.sidebarButton}>
             <span>⚙</span>
-            <span>Settings</span>
+            <span>{lang === "en" ? "Setting" : "设置"}</span>
           </Link>
         </div>
       </aside>
@@ -168,16 +175,16 @@ export default function TagNotesPage() {
             <p className={styles.sectionTitle}>{tagLabel}</p>
           </div>
           <div className={styles.spacer} />
-            <Link href="/TeamNoteTakingApp/tags" className={`${styles.button} ${styles.refreshButton}`}>Back to tags</Link>
+            <Link href="/TeamNoteTakingApp/tags" className={`${styles.button} ${styles.refreshButton}`}>{lang === "en" ? "Back To Tags" : "返回"}</Link>
         </div>
 
         <div className={styles.list}>
           {loading ? (
-            <div className={styles.listEmpty}>Loading notes…</div>
+            <div className={styles.listEmpty}>{lang === "en" ? "Loading Notes..." : "正在加载笔记..."}</div>
           ) : error ? (
             <div className={styles.listEmpty}>{error}</div>
           ) : owned.length === 0 ? (
-            <div className={styles.listEmpty}>No notes in this tag yet.</div>
+            <div className={styles.listEmpty}>{lang === "en" ? "No Notes in Tags Yet" : "标签里还没有笔记"}</div>
           ) : (
             owned.map((note) => (
               <div
@@ -188,7 +195,7 @@ export default function TagNotesPage() {
               >
                 <h3 className={styles.noteTitle}>{note.title || "Untitled"}</h3>
                 <div className={styles.notePreview}>
-                  {note.content || "No content"}
+                  {note.content || (lang === "en" ? "No Content" : "没有内容")}
                 </div>
               </div>
             ))
@@ -199,25 +206,25 @@ export default function TagNotesPage() {
       <section className={styles.contentPane}>
         <div className={styles.contentHeader}>
           <div className={styles.contentTitle}>
-            {active?.title || (loading ? "Loading…" : "Select a note")}
+            {active?.title || (loading ? (lang === "en" ? "Loading ..." : "正在加载...") : (lang === "en" ? "Select A Note" : "请选择一个笔记"))}
           </div>
           <div className={styles.row}>
             {active ? (
-              <Link href={`/TeamNoteTakingApp/note/${active.id}`}>Edit note</Link>
+              <Link href={`/TeamNoteTakingApp/note/${active.id}`}>{lang === "en" ? "Edit Note" : "编辑笔记"}</Link>
             ) : null}
           </div>
         </div>
 
         <div className={styles.contentBody}>
           {loading ? (
-            <div className={styles.listEmpty}>Loading notes…</div>
+            <div className={styles.listEmpty}>{lang === "en" ? "Loading Notes..." : "正在加载笔记..."}</div>
           ) : error ? (
             <div className={styles.listEmpty}>{error}</div>
           ) : !active ? (
-            <div className={styles.emptyState}>Choose a note from the list to view its contents.</div>
+            <div className={styles.emptyState}>{lang === "en" ? "Choose a note from the list to view its contents." : "请选着一个笔记来查看内容"}</div>
           ) : (
             <div className={styles.surface}>
-                <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{active.content || "No content"}</div>
+                <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{active.content || (lang === "en" ? "No Content" : "没有内容")}</div>
             </div>
           )}
         </div>

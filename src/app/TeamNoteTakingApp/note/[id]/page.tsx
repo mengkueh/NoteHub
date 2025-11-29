@@ -239,7 +239,7 @@ export default function EditNotePage() {
             <>
               <div className={styles.surface}>
                 <div style={{ marginBottom: 12 }}>
-                  <strong>{lang === "en" ? "Owner" : "作者"}</strong> <span>{ownerEmail}</span>
+                  <strong>{lang === "en" ? "Owner" : "作者: "}</strong> <span>{ownerEmail}</span>
                 </div>
 
                 <div style={{ marginBottom: 12 }}>

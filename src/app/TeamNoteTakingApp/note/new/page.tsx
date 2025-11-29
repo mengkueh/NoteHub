@@ -151,7 +151,7 @@ const RichEditor = dynamic(() => import("@/components/RichEditor"), { ssr: false
         </div>
         <div className={styles.list}>
           {loadingTags ? (
-            <div className={styles.listEmpty}>Loading tags…</div>
+            <div className={styles.listEmpty}>{lang === "en" ? "Loading Tags..." : "正在加载标签..."}</div>
           ) : tags.length === 0 ? (
             <div className={styles.listEmpty}>{lang === "en" ? "No tags yet. Create one from the Tags page!" : "您还没有标签， 去标签页创造一个吧！"}</div>
           ) : (

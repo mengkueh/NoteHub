@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import { useLockBodyScroll } from "../useLockBodyScroll";
+import { useLanguage } from "../context/LanguageContext"
 
 type Note = { id: number; title: string; content: string; createdAt?: string };
 
@@ -18,6 +19,7 @@ const router = useRouter();
   const [active, setActive] = useState<Note | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notLoggedIn, setNotLoggedIn] = useState(false);
+  const {lang, setLang } = useLanguage();
 
   useLockBodyScroll();
 
@@ -127,28 +129,28 @@ const router = useRouter();
         <div className={styles.sidebarHeader}>
           <span>NoteHub</span>
           <div className={styles.spacer} />
-          <Link href="/TeamNoteTakingApp" className={styles.logoutButton} onClick={handleLogout}>Logout</Link>
+          <Link href="/TeamNoteTakingApp" className={styles.logoutButton} onClick={handleLogout}>{lang === "en" ? "Logout" : "登出"}</Link>
         </div>
         <div className={styles.sidebarActions}>
           <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
             <span>📝</span>
-            <span>Dashboard</span>
+            <span>{lang === "en" ? "Dashboard" : "主页"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/note/new" className={styles.sidebarButton}>
             <span>＋</span>
-            <span>New Note</span>
+            <span>{lang === "en" ? "New Note" : "新笔记"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/tags" className={styles.sidebarButton}>
             <span>#</span>
-            <span>Tags</span>
+            <span>{lang === "en" ? "Tag" : "标签"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/team" className={styles.sidebarButton}>
             <span>#</span>
-            <span>Team</span>
+            <span>{lang === "en" ? "Team" : "队员"}</span>
           </Link>
           <Link href="/TeamNoteTakingApp/settings" className={styles.sidebarButton}>
             <span>⚙</span>
-            <span>Settings</span>
+            <span>{lang === "en" ? "Setting" : "设置"}</span>
           </Link>
         </div>
       </aside>
@@ -157,15 +159,15 @@ const router = useRouter();
     <div className={styles.listHeader}>
           <input
             className={styles.search}
-            placeholder="Search all notes"
+            placeholder={lang === "en" ? "Search All Notes" : "搜索笔记"}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
         <div>
-          <h4 style={{ margin: "8px 0" }}>Shared With Me</h4>
+          <h4 style={{ margin: "8px 0" }}>{lang === "en" ? "Shared Notes" : "分享的笔记"}</h4>
           {sharedFiltered.length === 0 ? (
-            <div className={styles.noteMeta}>No shared notes</div>
+            <div className={styles.noteMeta}>{lang === "en" ? "No Shared Note." : "没有分享的笔记"}</div>
           ) : (
             sharedFiltered.map((m) => (
               <div key={`shared-${m.id}`} className={styles.noteItem} onClick={() => setActive(m)} role="button">
@@ -181,22 +183,22 @@ const router = useRouter();
         <section className={styles.contentPane}>
         <div className={styles.contentHeader}>
           <div className={styles.contentTitle}>
-            {active?.title || "Select a note"}
+            {active?.title || (lang === "en" ? "Select A Note" : "请选择一个笔记")}
           </div>
           {active && (
             <div className={styles.row}>
               <Link href={`/TeamNoteTakingApp/note/${active.id}`}>
-                Edit
+                {lang === "en" ? "Edit" : "编辑"}
               </Link>
               <button onClick={() => handleDelete(active.id)} style={{ color: "#ff6b6b" }}>
-                Delete
+                {lang === "en" ? "Delete" : "删除"}
               </button>
             </div>
           )}
         </div>
         <div className={styles.contentBody}>
           {!active ? (
-            <div className={styles.emptyState}>Choose a note from the list to view its contents.</div>
+            <div className={styles.emptyState}>{lang === "en" ? "Choose a note from the list to view its contents." : "请选择一个笔记来查看内容"}</div>
           ) : (
             <div className={styles.surface}>
                 <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{active.content || "No content"}</div>
