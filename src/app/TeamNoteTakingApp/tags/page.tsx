@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import styles from "../home/page.module.css";
 import { useLockBodyScroll } from "../useLockBodyScroll";
 import { useLanguage } from "../context/LanguageContext"
-
+import RenderHtmlClient from "@/components/RenderHtmlClient";
 
 
 type Tag = { id: number; name: string; notes?: { note: { id: number; title: string } }[] };
@@ -241,8 +241,8 @@ export default function TagsPage() {
                   owned.map((note) => {
                     const isChecked = selectedNoteIds.includes(note.id);
                     const preview =
-                      note.content && note.content.length > 100
-                        ? `${note.content.slice(0, 100)}…`
+                      note.content && note.content.length > 50
+                        ? `${note.content.slice(0, 50)}…`
                         : note.content;
                     return (
                       <label
@@ -255,9 +255,20 @@ export default function TagsPage() {
                           onChange={() => toggleNoteSelect(note.id)}
                         />
                         <div>
-                          <div className={styles.checkRowTitle}>{note.title || "Untitled note"}</div>
+                          <div className={styles.checkRowTitle}>
+                            <RenderHtmlClient
+                              html={note.title || "<p>No content</p>"}
+                              className="quill-content"
+                            />
+                          </div>
                           {preview ? (
-                            <div className={styles.checkRowPreview}>{preview}</div>
+                            <div className={styles.checkRowPreview}>
+                              <RenderHtmlClient
+                              html={preview}
+                              className="quill-content"
+                            />
+                               
+                            </div>
                           ) : null}
                         </div>
                       </label>

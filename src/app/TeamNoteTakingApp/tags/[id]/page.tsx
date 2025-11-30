@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import styles from "../../home/page.module.css";
 import { useLockBodyScroll } from "../../useLockBodyScroll";
 import { useLanguage } from "../../context/LanguageContext"
+import RenderHtmlClient from "@/components/RenderHtmlClient";
 
 type Note = { id: number; title: string; content: string; createdAt?: string };
 type Tag = { id: number; name: string };
@@ -193,9 +194,13 @@ export default function TagNotesPage() {
                 onClick={() => setActive(note)}
                 role="button"
               >
-                <h3 className={styles.noteTitle}>{note.title || "Untitled"}</h3>
+                <h3 className={styles.noteTitle}>
+                  {note.title || "Untitled"}
+                </h3>
                 <div className={styles.notePreview}>
-                  {note.content || (lang === "en" ? "No Content" : "没有内容")}
+                  <RenderHtmlClient
+                    html={note.content || (lang === "en" ? "No Content" : "没有内容")}
+                  />
                 </div>
               </div>
             ))
@@ -224,7 +229,11 @@ export default function TagNotesPage() {
             <div className={styles.emptyState}>{lang === "en" ? "Choose a note from the list to view its contents." : "请选着一个笔记来查看内容"}</div>
           ) : (
             <div className={styles.surface}>
-                <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{active.content || (lang === "en" ? "No Content" : "没有内容")}</div>
+                <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+                  <RenderHtmlClient
+                    html={active.content || (lang === "en" ? "No Content" : "没有内容")}
+                  />
+                </div>
             </div>
           )}
         </div>

@@ -5,25 +5,34 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import { useLockBodyScroll } from "../useLockBodyScroll";
-import { useLanguage } from "../context/LanguageContext"
+import { useLanguage } from "../context/LanguageContext";
 
-type Note = { id: number; title: string; content: string; createdAt?: string };
+type Access = { id: number; role: string; user: { id: string; email: string; displayName?: string } };
+type NoteListItem = { id: number; title: string; content: string; createdAt?: string; userId?: string };
+type NoteDetail = {
+  id: number;
+  title: string;
+  content: string;
+  createdAt?: string;
+  user?: { id: string; email: string; displayName?: string };
+  accesses?: Access[];
+};
 
 export default function TeamPage() {
-    
-const router = useRouter();
-  const [, setOwned] = useState<Note[]>([]);
-  const [shared, setShared] = useState<Note[]>([]);
+  const router = useRouter();
+  const [owned, setOwned] = useState<NoteListItem[]>([]);
+  const [shared, setShared] = useState<NoteListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingNote, setLoadingNote] = useState(false);
   const [query, setQuery] = useState("");
-  const [active, setActive] = useState<Note | null>(null);
-  const [, setError] = useState<string | null>(null);
+  const [active, setActive] = useState<NoteDetail | null>(null);
   const [notLoggedIn, setNotLoggedIn] = useState(false);
-  const {lang} = useLanguage();
+  const [error, setError] = useState<string | null>(null);
+  const { lang } = useLanguage();
 
   useLockBodyScroll();
 
-  // load all notes (initially all)
+  // load all notes (owned + shared lists)
   useEffect(() => {
     let mounted = true;
     setLoading(true);
@@ -35,28 +44,20 @@ const router = useRouter();
         if (!mounted) return null;
 
         if (res.status === 401) {
-          // OPTION A: redirect to login immediately:
-          // router.push("/TeamNoteTakingApp/login");
-          // return null;
-
-          // OPTION B: show friendly "not logged in" message in this page:
           setNotLoggedIn(true);
           setLoading(false);
           return null;
         }
-
         if (!res.ok) {
           const txt = await res.text().catch(() => "Failed to load notes");
           throw new Error(txt);
         }
-
         return res.json();
       })
       .then((data) => {
         if (!mounted || !data) return;
         setOwned(Array.isArray(data.owned) ? data.owned : []);
         setShared(Array.isArray(data.shared) ? data.shared : []);
-        // setNotes(data);
       })
       .catch((e) => {
         console.error("load notes err:", e);
@@ -71,24 +72,28 @@ const router = useRouter();
     };
   }, [router]);
 
-  // If we detected no session, show friendly message and link to login
-  if (notLoggedIn) {
-    return (
-      <main style={{ padding: 20, maxWidth: 800, margin: "0 auto", textAlign: "center"}}>
-        <h1>Trying to key in the url to look inside?</h1>
-        <Link href={`/TeamNoteTakingApp`}><button className="cursor-pointer border-1 px-10 ">Go Back To Login NOW!</button></Link>
-      </main>
-    );
+  // fetch full note (owner + accesses) when clicking a note
+  async function handleSelect(noteId: number) {
+    setLoadingNote(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/notes/${noteId}`);
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "Failed to load note");
+        throw new Error(txt);
+      }
+      const data: NoteDetail = await res.json();
+      setActive(data);
+    } catch (err) {
+      console.error("load note err:", err);
+      setError("Failed to load note.");
+      setActive(null);
+    } finally {
+      setLoadingNote(false);
+    }
   }
 
-    const sharedFiltered = query.trim()
-    ?shared.filter((m) =>
-        (m.title + " " + m.content).toLowerCase().includes(query.trim().toLowerCase())
-      )
-    : shared;
-
-
-    async function handleDelete(id: number) {
+  async function handleDelete(id: number) {
     if (!confirm("Delete note?")) return;
     try {
       const res = await fetch(`/api/notes/${id}`, { method: "DELETE" });
@@ -99,19 +104,19 @@ const router = useRouter();
       }
       setOwned((prev) => prev.filter((n) => n.id !== id));
       setShared((prev) => prev.filter((n) => n.id !== id));
+      if (active?.id === id) setActive(null);
     } catch (err) {
       console.error(err);
       alert("Network error");
     }
   }
 
-  
-    async function handleLogout() {
+  // Logout helper
+  async function handleLogout() {
     setLoading(true);
     try {
       const res = await fetch("/api/logout", { method: "POST" });
       if (res.ok) {
-        // redirect to login
         router.push("/TeamNoteTakingApp");
       } else {
         alert("Failed to logout");
@@ -123,13 +128,37 @@ const router = useRouter();
       setLoading(false);
     }
   }
+
+  // filter shared notes by query
+  const sharedFiltered = query.trim()
+    ? shared.filter((m) => (m.title + " " + m.content).toLowerCase().includes(query.trim().toLowerCase()))
+    : shared;
+
+  // derive owner email and collaborators for currently active note
+  const ownerEmail = active?.user?.email ?? "Unknown";
+  const collaborators = (active?.accesses ?? [])
+    .map((a) => a.user?.email ?? null)
+    .filter((e) => e && e !== ownerEmail) as string[];
+
+  // "not logged in" message
+  if (notLoggedIn) {
     return (
-        <main className={styles.dashboard}>
-    <aside className={styles.sidebar}>
+      <main style={{ padding: 20, maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
+        <h1>{lang === "en" ? "Not signed in" : "未登录"}</h1>
+        <Link href={`/TeamNoteTakingApp`}><button className="cursor-pointer border-1 px-10 ">{lang === "en" ? "Go to Login" : "前往登录"}</button></Link>
+      </main>
+    );
+  }
+
+  return (
+    <main className={styles.dashboard}>
+      <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <span>NoteHub</span>
           <div className={styles.spacer} />
-          <Link href="/TeamNoteTakingApp" className={styles.logoutButton} onClick={handleLogout}>{lang === "en" ? "Logout" : "登出"}</Link>
+          <Link href="/TeamNoteTakingApp" className={styles.logoutButton} onClick={handleLogout}>
+            {lang === "en" ? "Logout" : "登出"}
+          </Link>
         </div>
         <div className={styles.sidebarActions}>
           <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
@@ -155,8 +184,8 @@ const router = useRouter();
         </div>
       </aside>
 
-<section className={styles.listPane}>
-    <div className={styles.listHeader}>
+      <section className={styles.listPane}>
+        <div className={styles.listHeader}>
           <input
             className={styles.search}
             placeholder={lang === "en" ? "Search All Notes" : "搜索笔记"}
@@ -164,13 +193,22 @@ const router = useRouter();
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
+
         <div>
           <h4 style={{ margin: "8px 0" }}>{lang === "en" ? "Shared Notes" : "分享的笔记"}</h4>
-          {sharedFiltered.length === 0 ? (
+
+          {loading ? (
+            <div className={styles.noteMeta}>{lang === "en" ? "Loading…" : "加载中…"}</div>
+          ) : sharedFiltered.length === 0 ? (
             <div className={styles.noteMeta}>{lang === "en" ? "No Shared Note." : "没有分享的笔记"}</div>
           ) : (
             sharedFiltered.map((m) => (
-              <div key={`shared-${m.id}`} className={styles.noteItem} onClick={() => setActive(m)} role="button">
+              <div
+                key={`shared-${m.id}`}
+                className={styles.noteItem}
+                onClick={() => handleSelect(m.id)}
+                role="button"
+              >
                 <h3 className={styles.noteTitle}>{m.title || "Untitled"}</h3>
                 <div className={styles.notePreview}>{m.content || "No content"}</div>
                 <div className={styles.noteMeta}>{m.createdAt ? new Date(m.createdAt).toLocaleString() : ""}</div>
@@ -178,35 +216,36 @@ const router = useRouter();
             ))
           )}
         </div>
-        </section>
+      </section>
 
-        <section className={styles.contentPane}>
+      <section className={styles.contentPane}>
         <div className={styles.contentHeader}>
-          <div className={styles.contentTitle}>
-            {active?.title || (lang === "en" ? "Select A Note" : "请选择一个笔记")}
-          </div>
+          <div className={styles.contentTitle}>{active?.title || (loadingNote ? (lang === "en" ? "Loading…" : "加载中…") : (lang === "en" ? "Select A Note" : "请选择一个笔记"))}</div>
           {active && (
             <div className={styles.row}>
-              <Link href={`/TeamNoteTakingApp/note/${active.id}`}>
-                {lang === "en" ? "Edit" : "编辑"}
-              </Link>
-              <button onClick={() => handleDelete(active.id)} style={{ color: "#ff6b6b" }}>
-                {lang === "en" ? "Delete" : "删除"}
-              </button>
+              <Link href={`/TeamNoteTakingApp/note/${active.id}`}>{lang === "en" ? "Edit" : "编辑"}</Link>
+              <button onClick={() => handleDelete(active.id)} style={{ color: "#ff6b6b" }}>{lang === "en" ? "Delete" : "删除"}</button>
             </div>
           )}
         </div>
+
         <div className={styles.contentBody}>
           {!active ? (
             <div className={styles.emptyState}>{lang === "en" ? "Choose a note from the list to view its contents." : "请选择一个笔记来查看内容"}</div>
           ) : (
             <div className={styles.surface}>
-                <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{active.content || "No content"}</div>
+              <div style={{ marginBottom: 12 }}>
+                <strong>{lang === "en" ? "Owner: " : "作者: "}</strong><span>{ownerEmail}</span>
+                <div style={{ marginTop: 6 }}>
+                  <strong>{lang === "en" ? "Collaborators: " : "协作者: "}</strong><span>{collaborators.length ? collaborators.join(", ") : (lang === "en" ? "None" : "无")}</span>
+                </div>
+              </div>
+              <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{active.content || "No content"}</div>
             </div>
           )}
+          {error ? <div style={{ color: "red", marginTop: 8 }}>{error}</div> : null}
         </div>
       </section>
-
-        </main>
-    )
+    </main>
+  );
 }

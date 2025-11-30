@@ -238,14 +238,14 @@ export default function EditNotePage() {
           ) : (
             <>
               <div className={styles.surface}>
-                <div style={{ marginBottom: 12 }}>
+                {/* <div style={{ marginBottom: 12 }}>
                   <strong>{lang === "en" ? "Owner: " : "作者: "}</strong> <span>{ownerEmail}</span>
                 </div>
 
                 <div style={{ marginBottom: 12 }}>
                   <strong>{lang === "en" ? "Collaborators: " : "合作者: "}</strong>{" "}
                   {collaborators.length === 0 ? <span>{lang === "en" ? "None" : "无"}</span> : <span>{collaborators.join(", ")}</span>}
-                </div>
+                </div> */}
 
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel} htmlFor="note-title">
