@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import styles from "./page.module.css";
+import styles from "../home/page.module.css";
 import { useLockBodyScroll } from "../useLockBodyScroll";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -111,24 +111,6 @@ export default function TeamPage() {
     }
   }
 
-  // Logout helper
-  async function handleLogout() {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/logout", { method: "POST" });
-      if (res.ok) {
-        router.push("/TeamNoteTakingApp");
-      } else {
-        alert("Failed to logout");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Network error");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   // filter shared notes by query
   const sharedFiltered = query.trim()
     ? shared.filter((m) => (m.title + " " + m.content).toLowerCase().includes(query.trim().toLowerCase()))
@@ -155,10 +137,6 @@ export default function TeamPage() {
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <span>NoteHub</span>
-          <div className={styles.spacer} />
-          <Link href="/TeamNoteTakingApp" className={styles.logoutButton} onClick={handleLogout}>
-            {lang === "en" ? "Logout" : "登出"}
-          </Link>
         </div>
         <div className={styles.sidebarActions}>
           <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
