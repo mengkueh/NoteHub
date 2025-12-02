@@ -184,11 +184,32 @@
 .list {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow-y: scroll;
   padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+:global(*::-webkit-scrollbar) {
+  width: 8px;
+  background: transparent;
+}
+
+/* Scrollbar track (hidden) */
+:global(*::-webkit-scrollbar-track) {
+  background: transparent;
+}
+
+/* Scrollbar thumb (visible on hover only) */
+:global(*:hover::-webkit-scrollbar-thumb) {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+/* When dragging */
+:global(*::-webkit-scrollbar-thumb:active) {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .noteItem {
@@ -245,6 +266,7 @@
   color: #f2f2f2;
 }
 .contentBody {
+  overflow-y: scroll;
   padding: 20px 24px;
   color: #d8d8d8;
   line-height: 1.6;
@@ -508,3 +530,4 @@
   color: #9a9a9a;
   line-height: 1.4;
 }
+
