@@ -80,7 +80,7 @@ export default function SettingPage() {
         {/* Language Selector */}
         <div className={styles.langContainer}>
           <h2 className={styles.sectionTitle}>
-            {lang === "en" ? "Home" : "主页"}
+            {lang === "en" ? "Language" : "语言"}
           </h2>
 
           <div className={styles.langButtons}>
@@ -92,21 +92,6 @@ export default function SettingPage() {
             </button>
           </div>
         </div>
-
-        {/* Logout Button */}
-        <button
-          onClick={handleLogout}
-          disabled={loading}
-          className={styles.logoutButton}
-        >
-          {loading
-            ? lang === "en"
-              ? "Logging Out..."
-              : "正在登出"
-            : lang === "en"
-            ? "Logout"
-            : "登出"}
-        </button>
 
         {/* Trash List */}
         <div className={styles.trashSection}>
@@ -156,6 +141,22 @@ export default function SettingPage() {
             ))}
           </ul>
         </div>
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          disabled={loading}
+          className={styles.logoutButton}
+        >
+          {loading
+            ? lang === "en"
+              ? "Logging Out..."
+              : "正在登出"
+            : lang === "en"
+            ? "Logout"
+            : "登出"}
+        </button>
+
       </div>
     </main>
   );
