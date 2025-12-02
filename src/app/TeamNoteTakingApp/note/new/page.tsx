@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import styles from "../../home/page.module.css";
+import styles from "../../home/main.module.css";
 import { useLockBodyScroll } from "../../useLockBodyScroll";
 import { useLanguage } from "../../context/LanguageContext"
 import AddTag from "@/components/AddTag";

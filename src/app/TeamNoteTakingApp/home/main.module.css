@@ -1,4 +1,4 @@
-/* Root layout */
+/* Copied from page.module.css and renamed to main.module.css */
 .dashboard {
   position: relative; /* needed for the pseudo-element line */
   --header-height: 56px; /* adjust if you want taller/shorter headers */
@@ -14,7 +14,6 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* single straight dividing line across the whole dashboard */
 .dashboard::after {
   content: "";
   position: absolute;
@@ -27,7 +26,6 @@
   z-index: 5;
 }
 
-/* Left sidebar (folders/actions) */
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -36,7 +34,6 @@
   overflow: hidden;
 }
 
-/* unified header sizing — remove per-column border-bottoms (global line used) */
 .sidebarHeader {
   display: flex;
   align-items: center;
@@ -78,7 +75,6 @@
   opacity: 0.6;
 }
 
-/* Centered settings page */
 .settingsContainer {
   height: 100vh;
   width: 100%;
@@ -108,7 +104,6 @@
   color: #f2f2f2;
   margin: 0;
 }
-
 
 .sidebarActions {
   display: grid;
@@ -148,7 +143,6 @@
   transform: scale(0.95);
 }
 
-/* Middle column (notes list) */
 .listPane {
   display: flex;
   flex-direction: column;
@@ -157,7 +151,6 @@
   overflow: hidden;
 }
 
-/* match the other headers exactly */
 .listHeader {
   display: flex;
   align-items: center;
@@ -249,7 +242,6 @@
   color: #8e8e8e;
 }
 
-/* Right column (content preview) */
 .contentPane {
   display: flex;
   flex-direction: column;
@@ -257,7 +249,6 @@
   overflow: hidden;
 }
 
-/* match the other headers exactly */
 .contentHeader {
   display: flex;
   align-items: center;
@@ -283,7 +274,6 @@
   color: #9a9a9a;
 }
 
-/* Utility */
 .row {
   display: flex;
   align-items: center;
@@ -478,8 +468,8 @@
 .tagOptionCount {
   font-size: 13px;
   color: #8e8e8e;
-  flex-shrink: 0;   
-  width: 65px;      
+  flex-shrink: 0;
+  width: 65px;
   text-align: right;
 }
 
@@ -536,4 +526,5 @@
   color: #9a9a9a;
   line-height: 1.4;
 }
+
 

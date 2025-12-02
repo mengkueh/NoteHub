@@ -4,7 +4,7 @@
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import styles from "../../home/page.module.css";
+import styles from "../../home/main.module.css";
 import { useLockBodyScroll } from "../../useLockBodyScroll";
 import ShareByEmail from "@/components/ShareByEmail";
 import { useLanguage } from "../../context/LanguageContext"

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import styles from "./page.module.css";
+import styles from "./main.module.css";
 import { useLockBodyScroll } from "../useLockBodyScroll";
 import { useLanguage } from "../context/LanguageContext"
 // import { getSessionFromCookie } from "@/lib/auth";
