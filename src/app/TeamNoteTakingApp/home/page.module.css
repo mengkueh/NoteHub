@@ -191,25 +191,31 @@
   gap: 8px;
 }
 
+/* Scrollbar width */
 :global(*::-webkit-scrollbar) {
   width: 8px;
-  background: transparent;
 }
 
-/* Scrollbar track (hidden) */
+/* Hide track completely */
 :global(*::-webkit-scrollbar-track) {
-  background: transparent;
+  background: transparent !important;
 }
 
-/* Scrollbar thumb (visible on hover only) */
-:global(*:hover::-webkit-scrollbar-thumb) {
-  background: rgba(255, 255, 255, 0.15);
+/* Thumb always visible */
+:global(*::-webkit-scrollbar-thumb) {
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 4px;
 }
 
-/* When dragging */
+/* Show when hovering */
+:global(*:hover::-webkit-scrollbar-thumb) {
+  background: rgba(255, 255, 255, 0.28);
+  border-radius: 4px;
+}
+
+/* Active drag state */
 :global(*::-webkit-scrollbar-thumb:active) {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .noteItem {
