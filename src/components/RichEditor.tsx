@@ -5,6 +5,7 @@
 import React, { useEffect, useRef } from "react";
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
+import "./RichEditor.module.css";
 
 type Props = {
   value?: string;
@@ -95,9 +96,16 @@ export default function RichEditor({
       // cleanup: destroy editor and listeners
       if (quillRef.current) {
         quillRef.current.off("text-change", () => {});
-        // Quill doesn't have a destroy method; remove the DOM node
-        // and let React unmount handle the rest. We null the ref.
       }
+
+      // In React 18 Strict Mode, effects can run twice (mount → unmount → mount)
+      // to help detect side‑effects. That can cause Quill to be initialized twice
+      // into the same DOM node, which looks like a "double toolbar".
+      // Clearing the container ensures we always start from a clean slate.
+      if (containerRef.current) {
+        containerRef.current.innerHTML = "";
+      }
+
       quillRef.current = null;
     };
     // we intentionally do not include `value` in deps here to avoid re-initializing

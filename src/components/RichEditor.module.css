@@ -1,0 +1,11 @@
+:global(.ql-editor) {
+  color: #fff;
+  font-family: inherit;
+}
+
+:global(.ql-editor.ql-blank::before) {
+  color: rgba(255, 255, 255, 0.7);
+  opacity: 0.8;
+  font-size: inherit;
+  font-family: inherit;
+}
