@@ -142,10 +142,15 @@ export default function NewNotePage() {
             <p className={styles.sectionTitle}>{lang === "en" ? "Tag Your Note" : "标签您的笔记"}</p>
             {/* <p className={styles.sectionSubtitle}>Optional - helps organize later</p> */}
           </div>
-          <div>
-            <button type="button" onClick={() => setShowAddTag(true)}>{lang === "en" ? "Add New Tag" : "添加新标签"}</button>
+          <div className={styles.spacer} />
+            <button 
+              type="button"
+              className={styles.button}
+              onClick={() => setShowAddTag(true)}
+            >
+              {lang === "en" ? "Add New Tag" : "添加新标签"}
+            </button>
           </div>
-        </div>
         <div className={styles.list}>
           {loadingTags ? (
             <div className={styles.listEmpty}>{lang === "en" ? "Loading Tags..." : "正在加载标签..."}</div>

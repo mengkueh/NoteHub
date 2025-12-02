@@ -251,7 +251,7 @@
 }
 
 .spacer {
-  flex: 1;
+  flex: 0.96;
 }
 
 .sectionTitle {
