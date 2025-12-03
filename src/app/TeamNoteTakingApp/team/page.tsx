@@ -172,8 +172,8 @@ export default function TeamPage() {
           />
         </div>
 
-        <div>
-          <h4 style={{ margin: "0.75rem 0.5rem" }}>{lang === "en" ? "Shared Notes" : "分享的笔记"}</h4>
+        <div className={styles.list}>
+          <h4 className={styles.sectionTitle}>{lang === "en" ? "Shared Notes" : "分享的笔记"}</h4>
 
           {loading ? (
             <div className={styles.noteMeta}>{lang === "en" ? "Loading…" : "加载中…"}</div>
@@ -202,7 +202,7 @@ export default function TeamPage() {
           {active && (
             <div className={styles.row}>
               <Link href={`/TeamNoteTakingApp/note/${active.id}`}>{lang === "en" ? "Edit" : "编辑"}</Link>
-              <button onClick={() => handleDelete(active.id)} style={{ color: "#ff6b6b" }}>{lang === "en" ? "Delete" : "删除"}</button>
+              <button className={styles.buttonDestructive}>{lang === "en" ? "Delete" : "删除"}</button>
             </div>
           )}
         </div>
@@ -212,16 +212,16 @@ export default function TeamPage() {
             <div className={styles.emptyState}>{lang === "en" ? "Choose a note from the list to view its contents." : "请选择一个笔记来查看内容"}</div>
           ) : (
             <div className={styles.surface}>
-              <div style={{ marginBottom: 12 }}>
+              <div className={styles.fieldGroup}>
                 <strong>{lang === "en" ? "Owner: " : "作者: "}</strong><span>{ownerEmail}</span>
-                <div style={{ marginTop: 6 }}>
+                <div>
                   <strong>{lang === "en" ? "Collaborators: " : "协作者: "}</strong><span>{collaborators.length ? collaborators.join(", ") : (lang === "en" ? "None" : "无")}</span>
                 </div>
               </div>
-              <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{active.content || "No content"}</div>
+              <div className={styles.contentBody}>{active.content || "No content"}</div>
             </div>
           )}
-          {error ? <div style={{ color: "red", marginTop: 8 }}>{error}</div> : null}
+          {error ? <div className={styles.modalError}>{error}</div> : null}
         </div>
       </section>
     </main>
