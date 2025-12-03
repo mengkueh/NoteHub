@@ -15,6 +15,7 @@ const RichEditor = dynamic(() => import("@/components/RichEditor"), {
     ssr: false,
     loading: () => <p>Loading Editor...</p>,
   });
+  
 export default function NewNotePage() {
   const router = useRouter();
   const [tags, setTags] = useState<Tag[]>([]);

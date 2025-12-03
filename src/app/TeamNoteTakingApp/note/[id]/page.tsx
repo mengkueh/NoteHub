@@ -8,7 +8,8 @@ import styles from "../../home/main.module.css";
 import { useLockBodyScroll } from "../../useLockBodyScroll";
 import ShareByEmail from "@/components/ShareByEmail";
 import { useLanguage } from "../../context/LanguageContext"
-import RichEditor from "@/components/RichEditor";
+import EditMembers from "@/components/EditMembers";
+import dynamic from "next/dynamic";
 
 type Tag = { id: number; name: string };
 type Access = { id: number; role: string; user: { id: string; email: string; displayName?: string } };
@@ -20,6 +21,10 @@ type NoteDetail = {
   user?: { id: string; email: string; displayName?: string };
   accesses?: Access[];
 };
+const RichEditor = dynamic(() => import("@/components/RichEditor"), { 
+    ssr: false,
+    loading: () => <p>Loading Editor...</p>,
+  });
 
 export default function EditNotePage() {
   const params = useParams();
@@ -38,6 +43,7 @@ export default function EditNotePage() {
   const [noteDetail, setNoteDetail] = useState<NoteDetail | null>(null);
   const {lang } = useLanguage();
   useLockBodyScroll();
+  const [showEditMembers, setShowEditMembers] = useState(false);
   
   // load tags (for the tag selector)
   useEffect(() => {
@@ -190,6 +196,20 @@ export default function EditNotePage() {
               console.log("invited, accesses:", accesses);
             }}
           />
+          <button onClick={() => setShowEditMembers(true)}>Edit members</button>
+
+<EditMembers
+  open={showEditMembers}
+  onClose={() => setShowEditMembers(false)}
+  noteId={noteId}
+  ownerEmail={noteDetail?.user?.email}
+  accesses={(noteDetail?.accesses ?? []) as any}
+  onDone={async () => {
+    await refreshNote();
+    setShowEditMembers(false);
+  }}
+/>
+
         </div>
       </aside>
 
