@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./login&register.module.css";
+import mainStyles from "./home/main.module.css";
 import { useLanguage } from "./context/LanguageContext"
 
 export default function LoginPage() {
@@ -104,11 +105,27 @@ export default function LoginPage() {
             {lang === "en" ? "Register" : "注册账号"}
           </button>
         </form>
-        <div>
-          <h1>{lang === "en" ? "Home" : "主页"}</h1>
+        <div className={styles.languageContainer}>
+          <label className={styles.label}>{lang === "en" ? "Language" : "语言"}</label>
+        <div className={mainStyles.languageToggleGroup}>
+          <button
+            onClick={() => setLang("en")}
+            className={`${mainStyles.languageToggleButton} ${
+              lang === "en" ? mainStyles.languageToggleButtonActive : ""
+            }`}
+          >
+            English
+          </button>
 
-          <button onClick={() => setLang("en")}>English</button>
-          <button onClick={() => setLang("zh")}>中文</button>
+          <button
+            onClick={() => setLang("zh")}
+            className={`${mainStyles.languageToggleButton} ${
+              lang === "zh" ? mainStyles.languageToggleButtonActive : ""
+            }`}
+          >
+            中文
+          </button>
+        </div>
         </div>
       </div>
     </main>

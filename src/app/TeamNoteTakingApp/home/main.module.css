@@ -267,6 +267,44 @@
   margin-top: 4px;
 }
 
+/* Language button Styles */
+.languageToggleGroup {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.languageToggleButton {
+  flex: 1;
+  background: #2c2c2e;
+  color: #ffffff;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue",
+    Helvetica, Arial, sans-serif;
+}
+
+.languageToggleButton:hover:not(:disabled) {
+  border-color: #ffd60a;
+}
+
+.languageToggleButton:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.languageToggleButtonActive {
+  background: #ffd60a;
+  color: #000000;
+  border-color: #ffd60a;
+  font-weight: 600;
+  box-shadow: 0 0 6px rgba(255, 214, 10, 0.4);
+}
+
 .surface {
   background: #202020;
   border: 1px solid #2d2d2d;

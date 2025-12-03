@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./settingspage.module.css";
-import styles2 from "../login&register.module.css";
+import registerStyles from "../login&register.module.css";
+import mainStyles from "../home/main.module.css";
 import { useLanguage } from "../context/LanguageContext";
 
 type TrashedNote = {
@@ -64,7 +65,7 @@ export default function SettingPage() {
       <div className={styles.settingsCard}>
         {/* Back Button */}
         <button
-          className={styles2.backButton}
+          className={registerStyles.backButton}
           onClick={() => router.back()}
           disabled={isLoading}
           aria-label="Back"
@@ -74,20 +75,30 @@ export default function SettingPage() {
 
         {/* Title */}
         <h1 className={styles.settingsTitle}>
-          {lang === "en" ? "Setting" : "设置"}
+          {lang === "en" ? "Settings" : "设置"}
         </h1>
 
         {/* Language Selector */}
-        <div className={styles.langContainer}>
-          <h2 className={styles.sectionTitle}>
+        <div className={styles.languageContainer}>
+          <label className={styles.sectionTitle}>
             {lang === "en" ? "Language" : "语言"}
-          </h2>
+          </label>
 
-          <div className={styles.langButtons}>
-            <button className={styles.langButton} onClick={() => setLang("en")}>
+          <div className={mainStyles.languageToggleGroup}>
+            <button
+              onClick={() => setLang("en")}
+              className={`${mainStyles.languageToggleButton} ${
+                lang === "en" ? mainStyles.languageToggleButtonActive : ""
+              }`}
+            >
               English
             </button>
-            <button className={styles.langButton} onClick={() => setLang("zh")}>
+            <button
+              onClick={() => setLang("zh")}
+              className={`${mainStyles.languageToggleButton} ${
+                lang === "zh" ? mainStyles.languageToggleButtonActive : ""
+              }`}
+            >
               中文
             </button>
           </div>
@@ -95,9 +106,9 @@ export default function SettingPage() {
 
         {/* Trash List */}
         <div className={styles.trashSection}>
-          <h2 className={styles.sectionTitle}>
+          <label className={styles.sectionTitle}>
             {lang === "en" ? "Recently Deleted Trash" : "最近删除的笔记"}
-          </h2>
+          </label>
 
           {items.length === 0 ? (
             <div className={styles.emptyTrashText}>
