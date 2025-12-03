@@ -150,7 +150,7 @@ export default function TagsPage() {
           </Link>
           <Link href="/TeamNoteTakingApp/settings" className={styles.sidebarButton}>
             <span>⚙</span>
-            <span>{lang === "en" ? "Setting" : "设置"}</span>
+            <span>{lang === "en" ? "Settings" : "设置"}</span>
           </Link>
         </div>
       </aside>

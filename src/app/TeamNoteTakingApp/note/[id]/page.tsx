@@ -178,7 +178,7 @@ export default function EditNotePage() {
           </Link>
           <Link href="/TeamNoteTakingApp/settings" className={styles.sidebarButton}>
             <span>⚙</span>
-            <span>{lang === "en" ? "Setting" : "设置"}</span>
+            <span>{lang === "en" ? "Settings" : "设置"}</span>
           </Link>
 
           {/* Invite button / component: ShareByEmail should POST to /api/notes/[id]/share or similar */}

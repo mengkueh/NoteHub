@@ -177,7 +177,7 @@ export default function TagNotesPage() {
           </div>
           <div className={styles.spacer} />
             <Link href="/TeamNoteTakingApp/tags" className={`${styles.button} ${styles.refreshButton}`}>{lang === "en" ? "Back To Tags" : "返回"}</Link>
-        </div>
+          </div>
 
         <div className={styles.list}>
           {loading ? (
