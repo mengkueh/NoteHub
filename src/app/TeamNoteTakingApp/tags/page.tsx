@@ -8,7 +8,7 @@ import styles from "../home/main.module.css";
 import { useLockBodyScroll } from "../useLockBodyScroll";
 import { useLanguage } from "../context/LanguageContext"
 import RenderHtmlClient from "@/components/RenderHtmlClient";
-
+import NotLoggedIn from "@/components/NotLoggedIn";
 
 type Tag = { id: number; name: string; notes?: { note: { id: number; title: string } }[] };
 type Note = { id: number; title: string; content?: string };
@@ -25,7 +25,7 @@ export default function TagsPage() {
   const [selectedNoteIds, setSelectedNoteIds] = useState<number[]>([]);
   const [creating, setCreating] = useState(false);
   const {lang} = useLanguage();
-
+  const [notLoggedIn, setNotLoggedIn] = useState(false);
   
   useLockBodyScroll();
 
@@ -38,6 +38,10 @@ export default function TagsPage() {
     setLoadingTags(true);
     try {
       const res = await fetch("/api/tags");
+      if (res.status === 401) {
+        if (true) setNotLoggedIn(true);
+        return [];
+      }
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       setTags(Array.isArray(data) ? data : []);
@@ -53,6 +57,10 @@ export default function TagsPage() {
     setLoadingNotes(true);
     try {
       const res = await fetch("/api/notes");
+      if (res.status === 401) {
+        if (true) setNotLoggedIn(true);
+        return [];
+      }
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       setOwned(Array.isArray(data.owned) ? data.owned : []);
@@ -124,6 +132,11 @@ export default function TagsPage() {
   }
 
   const tagCount = useMemo(() => tags.length, [tags]);
+
+  if (notLoggedIn) {
+    return <NotLoggedIn />;
+  }
+
 
   return (
     <main className={styles.dashboard}>

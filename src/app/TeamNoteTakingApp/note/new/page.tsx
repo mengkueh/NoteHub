@@ -9,6 +9,7 @@ import { useLockBodyScroll } from "../../useLockBodyScroll";
 import { useLanguage } from "../../context/LanguageContext"
 import AddTag from "@/components/AddTag";
 import dynamic from "next/dynamic";
+import NotLoggedIn from "@/components/NotLoggedIn";
 
 type Tag = { id: number; name: string };
 const RichEditor = dynamic(() => import("@/components/RichEditor"), { 
@@ -26,6 +27,7 @@ export default function NewNotePage() {
   const [loadingTags, setLoadingTags] = useState(true);
   const [showAddTag, setShowAddTag] = useState(false);
   const {lang, setLang } = useLanguage();
+  const [notLoggedIn, setNotLoggedIn] = useState(false);
   
 
   
@@ -37,6 +39,10 @@ export default function NewNotePage() {
 
     fetch("/api/tags")
       .then(async (r) => {
+        if (r.status === 401) {
+          if (true) setNotLoggedIn(true);
+          return [];
+      }
         if (!r.ok) throw new Error(await r.text());
         return r.json();
       })
@@ -109,6 +115,9 @@ export default function NewNotePage() {
   //   setIsClient(true);
   // }, []);
 
+  if (notLoggedIn) {
+    return <NotLoggedIn />;
+  }
   return (
     <main className={styles.dashboard}>
       <AddTag open={showAddTag} onClose={() => setShowAddTag(false)} onCreated={onTagCreated} />

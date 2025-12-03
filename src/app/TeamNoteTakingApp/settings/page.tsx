@@ -6,6 +6,8 @@ import styles from "./settingspage.module.css";
 import registerStyles from "../login&register.module.css";
 import mainStyles from "../home/main.module.css";
 import { useLanguage } from "../context/LanguageContext";
+import Link from "next/link";
+import NotLoggedIn from "@/components/NotLoggedIn";
 
 type TrashedNote = {
   id: number;
@@ -22,13 +24,44 @@ export default function SettingPage() {
   const [isLoading] = useState(false);
   const [items, setItems] = useState<TrashedNote[]>([]);
   const { lang, setLang } = useLanguage();
+  const [notLoggedIn, setNotLoggedIn] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+    setError(null);
+    setNotLoggedIn(false);
+
     fetch("/api/trash")
-      .then((r) => r.json())
-      .then(setItems)
-      .catch(console.error);
-  }, []);
+      .then(async (r) => {
+        if (!mounted) return null;
+
+        if (r.status === 401) {
+          // follow the home/page.tsx behaviour: show friendly not-logged-in message
+          setNotLoggedIn(true);
+          return null;
+        }
+
+        if (!r.ok) {
+          const txt = await r.text().catch(() => "Failed to load trash");
+          throw new Error(txt);
+        }
+
+        return r.json();
+      })
+      .then((data) => {
+        if (!mounted || !data) return;
+        setItems(Array.isArray(data) ? data : []);
+      })
+      .catch((e) => {
+        console.error("load trash err:", e);
+        if (mounted) setError((e as Error).message || "Unknown error");
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [router]);
 
   async function restore(id: number) {
     const r = await fetch(`/api/notes/${id}/restore`, { method: "POST" });
@@ -58,6 +91,11 @@ export default function SettingPage() {
     } finally {
       setLoading(false);
     }
+  }
+  
+  // If we detected no session, show friendly message and link to login (same as home/page.tsx)
+  if (notLoggedIn) {
+    return <NotLoggedIn />;
   }
 
   return (

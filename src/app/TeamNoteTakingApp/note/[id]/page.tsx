@@ -12,6 +12,7 @@ import ShareByEmail from "@/components/ShareByEmail";
 import { useLanguage } from "../../context/LanguageContext"
 import EditMembers from "@/components/EditMembers";
 import dynamic from "next/dynamic";
+import NotLoggedIn from "@/components/NotLoggedIn";
 
 type Tag = { id: number; name: string };
 type Access = { id: number; role: string; user: { id: string; email: string; displayName?: string } };
@@ -46,34 +47,40 @@ export default function EditNotePage() {
   const {lang } = useLanguage();
   useLockBodyScroll();
   const [showEditMembers, setShowEditMembers] = useState(false);
-  
+  const [notLoggedIn, setNotLoggedIn] = useState(false);
+
   // load tags (for the tag selector)
   useEffect(() => {
-    let mounted = true;
-    setLoadingTags(true);
+  let mounted = true;
+  setLoadingTags(true);
+  setNotLoggedIn(false); // reset before fetching
 
-    fetch("/api/tags")
-      .then(async (r) => {
-        if (!r.ok) throw new Error(await r.text());
-        return r.json();
-      })
-      .then((tags: Tag[]) => {
-        if (!mounted) return;
-        setAllTags(Array.isArray(tags) ? tags : []);
-      })
-      .catch((err) => {
-        console.error("load tags err:", err);
-        if (!mounted) return;
-        setAllTags([]);
-      })
-      .finally(() => {
-        if (mounted) setLoadingTags(false);
-      });
+  fetch("/api/tags")
+    .then(async (r) => {
+      if (r.status === 401) {
+        if (mounted) setNotLoggedIn(true);
+        return [];
+      }
+      if (!r.ok) throw new Error(await r.text());
+      return r.json();
+    })
+    .then((tags: Tag[]) => {
+      if (!mounted) return;
+      setAllTags(Array.isArray(tags) ? tags : []);
+    })
+    .catch((err) => {
+      console.error("load tags err:", err);
+      if (!mounted) return;
+      setAllTags([]);
+    })
+    .finally(() => {
+      if (mounted) setLoadingTags(false);
+    });
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  return () => {
+    mounted = false;
+  };
+}, []);
 
   // load note (including owner and accesses)
   useEffect(() => {
@@ -81,9 +88,15 @@ export default function EditNotePage() {
     let mounted = true;
     setLoadingNote(true);
     setError(null);
+    setNotLoggedIn(false);
 
     fetch(`/api/notes/${noteId}`)
       .then(async (res) => {
+        if (res.status === 401) {
+          // not authenticated -> show not-logged-in UI
+          if (mounted) setNotLoggedIn(true);
+          return [];
+        }
         if (!res.ok) {
           const txt = await res.text().catch(() => "Failed to load note");
           throw new Error(txt);
@@ -125,6 +138,11 @@ export default function EditNotePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: title.trim(), content: content.trim(), tagIds: selected }),
       });
+      if (res.status === 401) {
+        setNotLoggedIn(true);
+        alert("Unauthorized");
+        return;
+      }
       if (!res.ok) {
         const e = await res.json().catch(() => null);
         alert(e?.error || "Failed to save");
@@ -159,6 +177,10 @@ export default function EditNotePage() {
     } catch (err) {
       console.error("refresh note failed", err);
     }
+  }
+
+  if (notLoggedIn) {
+    return <NotLoggedIn />;
   }
 
   return (

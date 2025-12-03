@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import styles from "../home/main.module.css";
 import { useLockBodyScroll } from "../useLockBodyScroll";
 import { useLanguage } from "../context/LanguageContext";
+import RenderHtmlClient from "@/components/RenderHtmlClient";
+import NotLoggedIn from "@/components/NotLoggedIn";
 
 type Access = { id: number; role: string; user: { id: string; email: string; displayName?: string } };
 type NoteListItem = { id: number; title: string; content: string; createdAt?: string; userId?: string };
@@ -124,12 +126,7 @@ export default function TeamPage() {
 
   // "not logged in" message
   if (notLoggedIn) {
-    return (
-      <main style={{ padding: 20, maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
-        <h1>{lang === "en" ? "Not signed in" : "未登录"}</h1>
-        <Link href={`/TeamNoteTakingApp`}><button className="cursor-pointer border-1 px-10 ">{lang === "en" ? "Go to Login" : "前往登录"}</button></Link>
-      </main>
-    );
+    return <NotLoggedIn />;
   }
 
   return (
@@ -188,7 +185,12 @@ export default function TeamPage() {
                 role="button"
               >
                 <h3 className={styles.noteTitle}>{m.title || "Untitled"}</h3>
-                <div className={styles.notePreview}>{m.content || "No content"}</div>
+                <div className={styles.notePreview}>
+                  <RenderHtmlClient
+                  html={m.content || "<p>No content</p>"}
+                  className="quill-content"
+                />
+                </div>
                 <div className={styles.noteMeta}>{m.createdAt ? new Date(m.createdAt).toLocaleString() : ""}</div>
               </div>
             ))
@@ -218,7 +220,12 @@ export default function TeamPage() {
                   <strong>{lang === "en" ? "Collaborators: " : "协作者: "}</strong><span>{collaborators.length ? collaborators.join(", ") : (lang === "en" ? "None" : "无")}</span>
                 </div>
               </div>
-              <div className={styles.contentBody}>{active.content || "No content"}</div>
+              <div className={styles.contentBody}>
+                <RenderHtmlClient
+                  html={active.content || "<p>No content</p>"}
+                  className="quill-content"
+                />
+              </div>
             </div>
           )}
           {error ? <div className={styles.modalError}>{error}</div> : null}

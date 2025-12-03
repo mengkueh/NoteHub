@@ -7,6 +7,7 @@ import styles from "../../home/main.module.css";
 import { useLockBodyScroll } from "../../useLockBodyScroll";
 import { useLanguage } from "../../context/LanguageContext"
 import RenderHtmlClient from "@/components/RenderHtmlClient";
+import NotLoggedIn from "@/components/NotLoggedIn";
 
 type Note = { id: number; title: string; content: string; createdAt?: string };
 type Tag = { id: number; name: string };
@@ -24,6 +25,7 @@ export default function TagNotesPage() {
   const [tagName, setTagName] = useState<string>("");
   const [tagId, setTagId] = useState<number | null>(null);
   const {lang } = useLanguage();
+  const [notLoggedIn, setNotLoggedIn] = useState(false);  
 
 
   useLockBodyScroll();
@@ -46,6 +48,10 @@ export default function TagNotesPage() {
 
     fetch("/api/tags")
       .then(async (res) => {
+        if (res.status === 401) {
+          if (true) setNotLoggedIn(true);
+          return [];
+        }
         if (!res.ok) throw new Error(await res.text());
         return res.json();
       })
@@ -139,6 +145,10 @@ export default function TagNotesPage() {
     if (!slug) return (lang === "en" ? "Tag: " : "标签名称: ");
     return tagName ? `${lang === "en" ? "Tag: " : "标签名称: "} ${tagName}` : (lang === "en" ? "Tag: " : "标签名称: ");
   }, [slug, tagName]);
+
+  if (notLoggedIn) {
+    return <NotLoggedIn />;
+  }
 
   return (
     <main className={styles.dashboard}>
