@@ -79,11 +79,12 @@ export default function Dashboard() {
   }, [router]);
 
   // If we detected no session, show friendly message and link to login
-  if (notLoggedIn) {
+   if (notLoggedIn) {
     return (
       <main style={{ padding: 20, maxWidth: 800, margin: "0 auto", textAlign: "center"}}>
-        <h1>Trying to key in the url to look inside?</h1>
-        <Link href={`/TeamNoteTakingApp`}><button className="cursor-pointer border-1 px-10 ">Go Back To Login NOW!</button></Link>
+        <h1>You are note logged in yet. Please return to login page to Login Or Create an account.</h1>
+        <Link href={`/TeamNoteTakingApp`}><button className="cursor-pointer border-1 px-10 ">Login</button></Link>
+        <Link href={`/TeamNoteTakingApp/register`}><button className="cursor-pointer border-1 px-10 ">Register Account</button></Link>
       </main>
     );
   }

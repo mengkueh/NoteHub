@@ -9,6 +9,8 @@ import { useLockBodyScroll } from "../../useLockBodyScroll";
 import { useLanguage } from "../../context/LanguageContext"
 import AddTag from "@/components/AddTag";
 import dynamic from "next/dynamic";
+import RichEditor from "@/components/RichEditor";
+
 
 type Tag = { id: number; name: string };
 
@@ -22,7 +24,7 @@ export default function NewNotePage() {
   const [loadingTags, setLoadingTags] = useState(true);
   const [showAddTag, setShowAddTag] = useState(false);
   const {lang, setLang } = useLanguage();
-  const RichEditor = dynamic(() => import("@/components/RichEditor"), { ssr: false });
+  // const RichEditor = dynamic(() => import("@/components/RichEditor"), { ssr: false });
 
   
   useLockBodyScroll();
