@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import mainStyles from "@/app/TeamNoteTakingApp/home/main.module.css";
 
 type Tag = { id: number; name: string };
 
@@ -52,32 +53,45 @@ export default function AddTag({ open, onClose, onCreated }: Props) {
   }
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle} role="dialog" aria-modal="true" aria-labelledby="add-tag-title">
-        <h3 id="add-tag-title" style={{ margin: 0, marginBottom: 8 }}>Create a new tag</h3>
+    <div className={mainStyles.modalOverlay}>
+      <div
+        className={mainStyles.modalCard}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-tag-title"
+      >
+        <h3 id="add-tag-title" className={mainStyles.modalTitle}>
+          Create a new tag
+        </h3>
         <form onSubmit={handleCreate}>
-          <div style={{ marginBottom: 8 }}>
-            <input
-              autoFocus
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Tag name"
-              style={{ width: "100%", padding: "8px", borderRadius: 6, border: "1px solid #ccc" }}
-            />
-          </div>
+          <input
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Tag name"
+            className={mainStyles.modalInput}
+          />
 
-          {error ? <div style={{ color: "crimson", marginBottom: 8 }}>{error}</div> : null}
+          {error ? <div className={mainStyles.modalError}>{error}</div> : null}
 
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+          <div className={mainStyles.modalActions}>
             <button
               type="button"
-              onClick={() => { setName(""); setError(null); onClose(); }}
-              style={buttonStyle}
+              className={mainStyles.button}
+              onClick={() => {
+                setName("");
+                setError(null);
+                onClose();
+              }}
               disabled={creating}
             >
               Cancel
             </button>
-            <button type="submit" style={{ ...buttonStyle, background: "#2563eb", color: "white" }} disabled={creating}>
+            <button
+              type="submit"
+              className={`${mainStyles.button} ${mainStyles.buttonPrimary}`}
+              disabled={creating}
+            >
               {creating ? "Creating…" : "Create"}
             </button>
           </div>
@@ -86,31 +100,3 @@ export default function AddTag({ open, onClose, onCreated }: Props) {
     </div>
   );
 }
-
-/* Inline minimal styles so you can drop it in easily */
-const overlayStyle: React.CSSProperties = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(0,0,0,0.4)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  zIndex: 1200,
-};
-
-const modalStyle: React.CSSProperties = {
-  width: 380,
-  maxWidth: "90%",
-  background: "white",
-  borderRadius: 12,
-  padding: 16,
-  boxShadow: "0 6px 24px rgba(0,0,0,0.15)",
-};
-
-const buttonStyle: React.CSSProperties = {
-  padding: "8px 12px",
-  borderRadius: 8,
-  border: "1px solid #ddd",
-  background: "white",
-  cursor: "pointer",
-};
