@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import styles from "./main.module.css";
 import { useLockBodyScroll } from "../useLockBodyScroll";
 import { useLanguage } from "../context/LanguageContext"
-// import { getSessionFromCookie } from "@/lib/auth";
 import RenderHtmlClient from "@/components/RenderHtmlClient";
 import NotLoggedIn from "@/components/NotLoggedIn";
+import a from "C:\Users\mengk\my-app\src\app\Image\amalie-steiness.gif"
 
 type Note = { id: number; title: string; content: string; createdAt?: string; tags?: Array<{ tag: { id: number; name: string } }>; };
 
@@ -27,9 +27,7 @@ export default function Dashboard() {
   const {lang } = useLanguage();
   
 
-  // if (!session) {
-  //   router.push("/TeamNoteTakingApp");
-  // }
+
   useLockBodyScroll();
 
   // load all notes (initially all)
@@ -44,11 +42,6 @@ export default function Dashboard() {
         if (!mounted) return null;
 
         if (res.status === 401) {
-          // OPTION A: redirect to login immediately:
-          // router.push("/TeamNoteTakingApp/login");
-          // return null;
-
-          // OPTION B: show friendly "not logged in" message in this page:
           setNotLoggedIn(true);
           setLoading(false);
           return null;
@@ -91,33 +84,6 @@ const ownedFiltered = query.trim()
       )
     : owned;
 
-// const sharedFiltered = query.trim()
-//     ?shared.filter((m) =>
-//         (m.title + " " + m.content).toLowerCase().includes(query.trim().toLowerCase())
-//       )
-//     : shared; 
-    
-
-  // async function handleDelete(id: number) {
-  //   if (!confirm("Delete note?")) return;
-  //   setDeleting(id);
-  //   try {
-  //     const res = await fetch(`/api/notes/${id}`, { method: "DELETE" });
-  //     if (!res.ok) {
-  //       const err = await res.json().catch(() => ({ error: "Unknown" }));
-  //       alert(err.error || "Failed to delete");
-  //       return;
-  //     }
-  //     setOwned((prev) => prev.filter((n) => n.id !== id));
-  //     setShared((prev) => prev.filter((n) => n.id !== id));
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert("Network error");
-  //   } finally {
-  //     setDeleting(null);
-  //   }
-  // }
-
   async function handleTrash(noteId: number) {
   if (!confirm("Move this note to Trash?")) return;
 
@@ -144,8 +110,6 @@ const ownedFiltered = query.trim()
     setDeleting(null);
   }
 }
-
-
   
   // async function handleLogout() {
   //   setLoggingOut(true);
@@ -172,6 +136,7 @@ const ownedFiltered = query.trim()
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <span>NoteHub</span>
+          
         </div>
         <div className={styles.sidebarActions}>
           <Link href="/TeamNoteTakingApp/home" className={styles.sidebarButton}>
@@ -209,7 +174,7 @@ const ownedFiltered = query.trim()
         </div>
         <div className={styles.list}>
           {loading ? (
-            <div className={styles.noteMeta}>{lang === "en" ? "Loading notes…" : "正在加载"}</div>
+            <div className={styles.noteMeta}>{lang === "en" ? "Loading notes…" : "正在加载"}<img src="/amalie-steiness.gif" alt="loading gif" style={{ width: '50px'}}/></div>
           ) : ownedFiltered.length === 0 ? (
             <div className={styles.noteMeta}>{lang === "en" ? "No Notes" : "没有笔记"}</div>
           ) : (

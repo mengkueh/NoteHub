@@ -6,7 +6,6 @@ import styles from "./settingspage.module.css";
 import registerStyles from "../login&register.module.css";
 import mainStyles from "../home/main.module.css";
 import { useLanguage } from "../context/LanguageContext";
-import Link from "next/link";
 import NotLoggedIn from "@/components/NotLoggedIn";
 
 type TrashedNote = {
@@ -148,14 +147,18 @@ export default function SettingPage() {
             {lang === "en" ? "Recently Deleted Trash" : "最近删除的笔记"}
           </label>
 
-          {items.length === 0 ? (
-            <div className={styles.emptyTrashText}>
-              {lang === "en"
-                ? "No Recently Deleted Notes."
-                : "没有最近删除的笔记"}
-            </div>
-          ) : null}
 
+          {loading ? (
+            <div className={styles.emptyTrashText}>
+              <span>{lang === "en" ? "Loading Trash..." : "正在加载最近删除的笔记..."}</span>
+              <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: '50px'}}/>
+            </div>
+          ) : items.length === 0 ? (
+            <div className={styles.emptyTrashText}>
+              <span>{lang === "en" ? "No Recently Deleted Notes." : "没有最近删除的笔记"}</span>
+              <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: '50px'}}/>
+            </div>
+          ) : (
           <ul className={styles.trashList}>
             {items.map((it) => (
               <li className={styles.trashItem} key={it.id}>
@@ -189,6 +192,7 @@ export default function SettingPage() {
               </li>
             ))}
           </ul>
+        )}
         </div>
 
         {/* Logout Button */}
@@ -197,13 +201,18 @@ export default function SettingPage() {
           disabled={loading}
           className={styles.logoutButton}
         >
-          {loading
-            ? lang === "en"
-              ? "Logging Out..."
-              : "正在登出"
-            : lang === "en"
-            ? "Logout"
-            : "登出"}
+          {loading ? (
+            <>
+              <img
+                src="/amalie-steiness.gif"
+                alt="logging out"
+                style={{ width: '20px', height: '20px' }}
+              />
+              <span>{lang === "en" ? "Logging Out..." : "正在登出"}</span>
+            </>
+          ) : (
+            <span>{lang === "en" ? "Logout" : "登出"}</span>
+          )}
         </button>
 
       </div>

@@ -173,7 +173,10 @@ export default function TeamPage() {
           <h4 className={styles.sectionTitle}>{lang === "en" ? "Shared Notes" : "分享的笔记"}</h4>
 
           {loading ? (
-            <div className={styles.noteMeta}>{lang === "en" ? "Loading…" : "加载中…"}</div>
+            <div className={styles.noteMeta}>
+              {lang === "en" ? "Loading…" : "加载中…"}
+              <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: '50px'}}/>
+            </div>
           ) : sharedFiltered.length === 0 ? (
             <div className={styles.noteMeta}>{lang === "en" ? "No Shared Note." : "没有分享的笔记"}</div>
           ) : (
@@ -200,7 +203,10 @@ export default function TeamPage() {
 
       <section className={styles.contentPane}>
         <div className={styles.contentHeader}>
-          <div className={styles.contentTitle}>{active?.title || (loadingNote ? (lang === "en" ? "Loading…" : "加载中…") : (lang === "en" ? "Select A Note" : "请选择一个笔记"))}</div>
+          <div className={styles.contentTitle}>
+            {loadingNote && <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: '24px', height: '24px' }} />}
+            {active?.title || (loadingNote ? (lang === "en" ? "Loading…" : "加载中…") : (lang === "en" ? "Select A Note" : "请选择一个笔记"))}
+          </div>
           {active && (
             <div className={styles.row}>
               <Link href={`/TeamNoteTakingApp/note/${active.id}`}>{lang === "en" ? "Edit" : "编辑"}</Link>

@@ -191,11 +191,17 @@ export default function TagNotesPage() {
 
         <div className={styles.list}>
           {loading ? (
-            <div className={styles.listEmpty}>{lang === "en" ? "Loading Notes..." : "正在加载笔记..."}</div>
+            <div className={styles.listEmpty}>
+              {lang === "en" ? "Loading Notes..." : "正在加载笔记..."}
+              <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: '50px'}}/>
+            </div>
+            
           ) : error ? (
             <div className={styles.listEmpty}>{error}</div>
           ) : owned.length === 0 ? (
-            <div className={styles.listEmpty}>{lang === "en" ? "No Notes in Tags Yet" : "标签里还没有笔记"}</div>
+            <div className={styles.listEmpty}>
+              {lang === "en" ? "No Notes in Tags Yet" : "标签里还没有笔记"}
+            </div>
           ) : (
             owned.map((note) => (
               <div
@@ -222,6 +228,7 @@ export default function TagNotesPage() {
         <div className={styles.contentHeader}>
           <div className={styles.contentTitle}>
             {active?.title || (loading ? (lang === "en" ? "Loading ..." : "正在加载...") : (lang === "en" ? "Select A Note" : "请选择一个笔记"))}
+            {loading && <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: '24px', height: '24px' }} />}
           </div>
           <div className={styles.row}>
             {active ? (

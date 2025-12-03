@@ -166,7 +166,10 @@ export default function NewNotePage() {
           </div>
         <div className={styles.list}>
           {loadingTags ? (
-            <div className={styles.listEmpty}>{lang === "en" ? "Loading Tags..." : "正在加载标签..."}</div>
+            <div className={styles.listEmpty}>
+              {lang === "en" ? "Loading Tags..." : "正在加载标签..."}
+              <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: '50px'}}/>
+            </div>
           ) : tags.length === 0 ? (
             <div className={styles.listEmpty}>{lang === "en" ? "No tags yet. Create one from the Tags page!" : "您还没有标签， 去标签页创造一个吧！"}</div>
           ) : (

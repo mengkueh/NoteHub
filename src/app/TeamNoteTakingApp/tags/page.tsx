@@ -184,7 +184,10 @@ export default function TagsPage() {
 
         <div className={styles.list}>
           {loadingTags ? (
-            <div className={styles.listEmpty}>{lang === "en" ? "Loading Tags..." : "正在加载标签"}</div>
+            <div className={styles.listEmpty}>
+              {lang === "en" ? "Loading Tags..." : "正在加载标签"}
+              <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: '50px'}}/>
+            </div>
           ) : tags.length === 0 ? (
             <div className={styles.listEmpty}>{lang === "en" ? "No tags yet. Create one from the Tags page!" : "您还没有标签， 去标签页创造一个吧！"}</div>
           ) : (
@@ -247,9 +250,15 @@ export default function TagsPage() {
               <span className={styles.fieldLabel}>{lang === "en" ? "Attached Note:" : "选择的笔记"}</span>
               <div className={`${styles.surface} ${styles.surfaceDense}`} style={{ maxHeight: 280, overflow: "auto" }}>
                 {loadingNotes ? (
-                  <div className={styles.listEmpty}>{lang === "en" ? "Loading notes..." : "正在加载笔记"}</div>
+                  <div className={styles.listEmpty}>
+                    {lang === "en" ? "Loading notes..." : "正在加载笔记"}
+                    <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: '50px'}}/>
+                  </div>
                 ) : owned.length === 0 ? (
-                  <div className={styles.listEmpty}>{lang === "en" ? "No notes yet. Create one first." : "还没有笔记, 去创新一个吧!"}</div>
+                  <div className={styles.listEmpty}>
+                    {lang === "en" ? "No notes yet. Create one first." : "还没有笔记, 去创新一个吧!"}
+                    <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: '50px'}}/>
+                  </div>
                 ) : (
                   owned.map((note) => {
                     const isChecked = selectedNoteIds.includes(note.id);
