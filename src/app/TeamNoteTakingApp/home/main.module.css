@@ -305,6 +305,10 @@
   box-shadow: 0 0 6px rgba(255, 214, 10, 0.4);
 }
 
+.languageToggleButtonActive:hover{
+  background-color: #ffe55c;;
+}
+
 .surface {
   background: #202020;
   border: 1px solid #2d2d2d;
@@ -406,10 +410,11 @@
   background: #ffd60a;
   border: none;
   color: #101010;
+  text-align: center;
 }
 
 .buttonPrimary:hover {
-  background: #ffe55c;
+  background: #ffe55c !important;
 }
 
 .buttonPrimary:active {
@@ -501,6 +506,65 @@
   font-size: 15px;
   text-align: center;
   padding: 24px 12px;
+}
+
+/* Reusable modal styles */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+
+.modalCard {
+  width: 420px;
+  max-width: 90%;
+  background: #1c1c1e;
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f2f2f2;
+}
+
+.modalTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.modalBody {
+  font-size: 14px;
+  color: #d1d1d6;
+  margin-bottom: 12px;
+}
+
+.modalInput {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #303030;
+  background: #151515;
+  color: #f0f0f0;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.modalError {
+  color: #ff6b6b;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .checkRow {
