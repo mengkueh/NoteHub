@@ -173,7 +173,7 @@ export default function TeamPage() {
         </div>
 
         <div>
-          <h4 style={{ margin: "8px 0" }}>{lang === "en" ? "Shared Notes" : "分享的笔记"}</h4>
+          <h4 style={{ margin: "0.75rem 0.5rem" }}>{lang === "en" ? "Shared Notes" : "分享的笔记"}</h4>
 
           {loading ? (
             <div className={styles.noteMeta}>{lang === "en" ? "Loading…" : "加载中…"}</div>
