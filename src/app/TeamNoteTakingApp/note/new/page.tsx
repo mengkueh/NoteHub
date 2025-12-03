@@ -11,7 +11,10 @@ import AddTag from "@/components/AddTag";
 import dynamic from "next/dynamic";
 
 type Tag = { id: number; name: string };
-
+const RichEditor = dynamic(() => import("@/components/RichEditor"), { 
+    ssr: false,
+    loading: () => <p>Loading Editor...</p>,
+  });
 export default function NewNotePage() {
   const router = useRouter();
   const [tags, setTags] = useState<Tag[]>([]);
@@ -22,10 +25,7 @@ export default function NewNotePage() {
   const [loadingTags, setLoadingTags] = useState(true);
   const [showAddTag, setShowAddTag] = useState(false);
   const {lang, setLang } = useLanguage();
-  const RichEditor = dynamic(() => import("@/components/RichEditor"), { 
-    ssr: false,
-    loading: () => <p>{lang === "en" ? "Loading Editor..." : "正在加载编辑器..."}</p>,
-  });
+  
 
   
   useLockBodyScroll();

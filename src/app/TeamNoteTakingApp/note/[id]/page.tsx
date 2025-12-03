@@ -38,7 +38,7 @@ export default function EditNotePage() {
   const [noteDetail, setNoteDetail] = useState<NoteDetail | null>(null);
   const {lang } = useLanguage();
   useLockBodyScroll();
-
+  
   // load tags (for the tag selector)
   useEffect(() => {
     let mounted = true;
