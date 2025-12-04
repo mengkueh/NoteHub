@@ -14,7 +14,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "email/password required" }, { status: 400 });
     }
 
-    const email = String(rawEmail).trim().toLowerCase();
+    const email = String(rawEmail).trim();
 
     // 查 user（只选必要字段）
     const user = await prisma.user.findUnique({

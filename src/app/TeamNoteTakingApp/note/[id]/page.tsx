@@ -13,6 +13,8 @@ import { useLanguage } from "../../context/LanguageContext"
 import EditMembers from "@/components/EditMembers";
 import dynamic from "next/dynamic";
 import NotLoggedIn from "@/components/NotLoggedIn";
+import mainStyles from "@/app/TeamNoteTakingApp/home/main.module.css";
+
 
 type Tag = { id: number; name: string };
 type Access = { id: number; role: string; user: { id: string; email: string; displayName?: string } };
@@ -220,7 +222,7 @@ export default function EditNotePage() {
               console.log("invited, accesses:", accesses);
             }}
           />
-          <button onClick={() => setShowEditMembers(true)}>Edit members</button>
+          <button onClick={() => setShowEditMembers(true)} className={`${mainStyles.button} ${mainStyles.buttonPrimary}`}>{lang === "en" ? "Edit Members" : "编辑队员"}</button>
 
 <EditMembers
   open={showEditMembers}

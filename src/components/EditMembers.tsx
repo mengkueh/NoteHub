@@ -2,6 +2,8 @@
 "use client";
 
 import React, { useState } from "react";
+import mainStyles from "@/app/TeamNoteTakingApp/home/main.module.css";
+import { useLanguage } from "@/app/TeamNoteTakingApp/context/LanguageContext";
 
 type Access = {
   id: number;
@@ -26,6 +28,7 @@ export default function EditMembers({
 }) {
   const [localAccesses, setLocalAccesses] = useState<Access[]>(accesses ?? []);
   const [busyFor, setBusyFor] = useState<string | null>(null); // userId busy
+  const { lang } = useLanguage();
   React.useEffect(() => setLocalAccesses(accesses ?? []), [accesses]);
 
   if (!open) return null;
@@ -81,27 +84,24 @@ export default function EditMembers({
   }
 
   return (
-    <div style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex",
-      alignItems: "center", justifyContent: "center", zIndex: 9999
-    }}>
-      <div style={{ width: 720, maxWidth: "95%", background: "#fff", borderRadius: 8, padding: 20 }}>
+    <div className={mainStyles.modalOverlay}>
+      <div className={mainStyles.modalCard}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <h3 style={{ margin: 0 }}>Edit members</h3>
+          <h3 className={mainStyles.modalTitle}>{lang === "en" ? "Edit Members" : "编辑队员"}</h3>
           <div>
-            <button onClick={onClose} style={{ padding: "6px 10px" }}>Close</button>
+            <button onClick={onClose} className={`${mainStyles.button} ${mainStyles.buttonPrimary}`}>{lang === "en" ? "Close" : "关闭"}</button>
           </div>
         </div>
 
         <div style={{ marginBottom: 8 }}>
-          <strong>Owner</strong>
-          <div style={{ padding: "8px 6px", background: "#f5f5f5", borderRadius: 6 }}>
-            {ownerEmail ?? "Unknown"}
+          <strong>{lang === "en" ? "Owner" : "作者"}</strong>
+          <div className={mainStyles.modalTitle}>
+            - {ownerEmail ?? "Unknown"}
           </div>
         </div>
 
         <div>
-          <strong>Collaborators</strong>
+          <strong>{lang === "en" ? "Collaborators" : "共享者"}</strong>
           {localAccesses.length === 0 ? (
             <div style={{ marginTop: 8 }}>No collaborators</div>
           ) : (
@@ -113,8 +113,8 @@ export default function EditMembers({
                 return (
                   <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600 }}>{a.user.displayName ?? email}</div>
-                      <div style={{ fontSize: 12, color: "#555" }}>{email}</div>
+                      <div style={{ fontWeight: 600 }}>- {a.user.displayName ?? email}</div>
+                      
                     </div>
 
                     <div>
@@ -123,8 +123,8 @@ export default function EditMembers({
                         disabled={busyFor !== null}
                         onChange={(e) => changeRole(a.user.id, e.target.value as "viewer" | "editor")}
                       >
-                        <option value="viewer">Viewer</option>
-                        <option value="editor">Editor</option>
+                        <option value="viewer">{lang === "en" ? "View Only" : "只能查看"}</option>
+                        <option value="editor">{lang === "en" ? "Editor" : "编辑"}</option>
                       </select>
                     </div>
 
@@ -134,7 +134,7 @@ export default function EditMembers({
                         disabled={busyFor !== null}
                         style={{ color: "#fff", background: "#ff6b6b", border: "none", padding: "6px 10px", borderRadius: 6 }}
                       >
-                        Remove
+                        {lang === "en" ? "Remove" : "移除"}
                       </button>
                     </div>
                   </div>
@@ -145,7 +145,7 @@ export default function EditMembers({
         </div>
 
         <div style={{ marginTop: 16, textAlign: "right" }}>
-          <button onClick={onClose} style={{ padding: "6px 10px" }}>Done</button>
+          <button onClick={onClose} style={{ padding: "6px 10px" }}>{lang === "en" ? "Done" : "完成"}</button>
         </div>
       </div>
     </div>
