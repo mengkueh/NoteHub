@@ -46,7 +46,7 @@ export async function POST(req: Request, context: any) {
 
     // parse body
     const body = (await req.json().catch(() => ({} as any))) as { email?: string; role?: string } | any;
-    const emailRaw = (body?.email ?? "").toString().trim().toLowerCase();
+    const emailRaw = (body?.email ?? "").toString().trim();
     const role = (body?.role ?? "editor").toString();
 
     if (!emailRaw) return NextResponse.json({ error: "Email required" }, { status: 400 });

@@ -26,7 +26,7 @@ export default function ShareByEmail({
       const res = await fetch(`/api/notes/${noteId}/share`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), role }),
+        body: JSON.stringify({ email: email.trim(), role }),
       });
       const data = await res.json().catch(() => ({ error: "Invalid response" }));
       if (!res.ok) {
