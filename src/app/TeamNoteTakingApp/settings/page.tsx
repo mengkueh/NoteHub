@@ -142,58 +142,7 @@ export default function SettingPage() {
         </div>
 
         {/* Trash List */}
-        <div className={styles.trashSection}>
-          <label className={styles.sectionTitle}>
-            {lang === "en" ? "Recently Deleted Trash" : "最近删除的笔记"}
-          </label>
-
-
-          {loading ? (
-            <div className={styles.emptyTrashText}>
-              <span>{lang === "en" ? "Loading Trash..." : "正在加载最近删除的笔记..."}</span>
-              <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: '50px'}}/>
-            </div>
-          ) : items.length === 0 ? (
-            <div className={styles.emptyTrashText}>
-              <span>{lang === "en" ? "No Recently Deleted Notes." : "没有最近删除的笔记"}</span>
-              <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: '50px'}}/>
-            </div>
-          ) : (
-          <ul className={styles.trashList}>
-            {items.map((it) => (
-              <li className={styles.trashItem} key={it.id}>
-                <div className={styles.trashItemHeader}>
-                  <b>{it.title}</b>
-                </div>
-
-                <div className={styles.trashMeta}>
-                  {lang === "en" ? "Deleted At: " : "删除日期: "}
-                  {new Date(it.deletedAt).toLocaleString()}
-                  {" • "}
-                  {lang === "en" ? "Purges In " : "删除倒数 "}
-                  {it.daysLeft} {lang === "en" ? "day(s)" : "天"}
-                </div>
-
-                <div className={styles.trashButtons}>
-                  <button
-                    className={styles.restoreButton}
-                    onClick={() => restore(it.id)}
-                  >
-                    {lang === "en" ? "Restore" : "恢复"}
-                  </button>
-
-                  <button
-                    className={styles.deleteButton}
-                    onClick={() => permanentDelete(it.id)}
-                  >
-                    {lang === "en" ? "Delete Permanently" : "永久删除"}
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-        </div>
+        
 
         {/* Logout Button */}
         <button

@@ -1,0 +1,156 @@
+.logoutButton {
+    background: #f44;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+    font-weight: 600;
+    font-size: 18px;
+    text-align: center;
+    width: 100%;
+    margin-top: 5px;
+  }
+  .logoutButton:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+  .logoutButton:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
+  
+  /* Centered settings page */
+  .settingsContainer {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000000;
+    color: #e5e5e5;
+  }
+  
+  .settingsCard {
+    background: #1C1C1E;
+    border: 1px solid #2a2a2a;
+    border-radius: 14px;
+    padding: 32px 40px;
+    width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.1);  
+    position: relative;
+  }
+  
+  .settingsTitle {
+    font-size: 1.9rem; /* 32px */
+    line-height: 2.25rem;
+    font-weight: 600; /* iOS uses semibold, not bold */
+    text-align: center;
+    color: #FFFFFF; /* iOS dark mode primary text */
+    letter-spacing: -0.01em; /* iOS tight letter spacing */
+  }
+
+  /* Language section */
+  .languageContainer {
+    width: 100%;
+  }
+
+  .sectionTitle {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 0 0.5rem 0;
+  }
+
+  /* Trash list */
+  .trashSection {
+    width: 100%;
+  }
+
+  .emptyTrashText {
+    margin-top: 6px;
+    font-size: 0.9rem;
+    color: #9a9a9a;
+  }
+
+  .trashList {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
+  .trashItem {
+    border-radius: 12px;
+    background: #202022;
+    border: 1px solid #2c2c2e;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .trashItemHeader b {
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  .trashMeta {
+    font-size: 0.8rem;
+    color: #a1a1a6;
+    min-height: 38px;
+  }
+
+  .trashButtons {
+    margin-top: 6px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .restoreButton,
+  .deleteButton {
+    flex: 1;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    padding: 8px 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  }
+  
+  .restoreButton:active:not(:disabled),
+  .deleteButton:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .restoreButton {
+    background: rgba(10, 132, 255, 0.18);
+    border-color: rgba(10, 132, 255, 0.6);
+    color: #0a84ff;
+  }
+
+  .restoreButton:hover {
+    background: rgba(10, 132, 255, 0.28);
+  }
+
+  .deleteButton {
+    background: rgba(255, 69, 58, 0.12);
+    border-color: rgba(255, 69, 58, 0.5);
+    color: #ff453a;
+  }
+
+  .deleteButton:hover {
+    background: rgba(255, 69, 58, 0.22);
+  }
+
+  

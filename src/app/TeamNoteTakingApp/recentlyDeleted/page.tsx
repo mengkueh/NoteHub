@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./settingspage.module.css";
-// import registerStyles from "../login&register.module.css";
-// import mainStyles from "../home/main.module.css";
+import registerStyles from "../login&register.module.css";
+import mainStyles from "../home/main.module.css";
 import { useLanguage } from "../context/LanguageContext";
 import NotLoggedIn from "@/components/NotLoggedIn";
 
@@ -81,9 +81,28 @@ export default function RegentlyDeletedPage() {
     }
 
     return (
-        <main className={styles.settingsContainer}>
-            
-<div className={styles.trashSection}>
+    <main className={styles.settingsContainer}>
+      <div className={styles.settingsCard}>
+        {/* Back Button */}
+        <button
+          className={registerStyles.backButton}
+          onClick={() => router.back()}
+          disabled={isLoading}
+          aria-label="Back"
+        >
+          ←
+        </button>
+
+        {/* Title */}
+        <h1 className={styles.settingsTitle}>
+          {lang === "en" ? "Recently Deleted" : "最近删除"}
+        </h1>
+
+        {/* Language Selector */}
+        
+
+        {/* Trash List */}
+        <div className={styles.trashSection}>
           <label className={styles.sectionTitle}>
             {lang === "en" ? "Recently Deleted Trash" : "最近删除的笔记"}
           </label>
@@ -136,6 +155,9 @@ export default function RegentlyDeletedPage() {
         )}
         </div>
 
-        </main>
+        
 
-    );
+      </div>
+    </main>
+  );
+}

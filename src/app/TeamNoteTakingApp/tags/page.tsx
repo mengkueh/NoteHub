@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "../home/main.module.css";
 import { useLockBodyScroll } from "../useLockBodyScroll";
-import { useLanguage } from "../context/LanguageContext"
+import { useLanguage } from "../context/LanguageContext";
 import RenderHtmlClient from "@/components/RenderHtmlClient";
 import NotLoggedIn from "@/components/NotLoggedIn";
 
@@ -16,7 +16,6 @@ type Note = { id: number; title: string; content?: string };
 export default function TagsPage() {
   const router = useRouter();
   const [tags, setTags] = useState<Tag[]>([]);
-  // const [notes, setNotes] = useState<Note[]>([]);
   const [owned, setOwned] = useState<Note[]>([]);
   const [shared, setShared] = useState<Note[]>([]);
   const [loadingTags, setLoadingTags] = useState(true);
@@ -24,9 +23,10 @@ export default function TagsPage() {
   const [tagName, setTagName] = useState("");
   const [selectedNoteIds, setSelectedNoteIds] = useState<number[]>([]);
   const [creating, setCreating] = useState(false);
-  const {lang} = useLanguage();
+  const { lang } = useLanguage();
   const [notLoggedIn, setNotLoggedIn] = useState(false);
-  
+  const [query, setQuery] = useState("");
+
   useLockBodyScroll();
 
   useEffect(() => {
@@ -34,12 +34,31 @@ export default function TagsPage() {
     refreshNotes();
   }, []);
 
+  // --- Search / Filter Logic ---
+  const filteredTags = useMemo(() => {
+    let result = tags;
+
+    // Filter by query if it exists
+    if (query.trim()) {
+      const lowerQuery = query.toLowerCase();
+      result = result.filter((tag) => 
+        tag.name.toLowerCase().includes(lowerQuery)
+      );
+    }
+
+    // Sort alphabetically
+    return result.sort((a, b) => a.name.localeCompare(b.name));
+  }, [tags, query]);
+
+  // Count based on filter results
+  const tagCount = filteredTags.length;
+
   async function refreshTags() {
     setLoadingTags(true);
     try {
       const res = await fetch("/api/tags");
       if (res.status === 401) {
-        if (true) setNotLoggedIn(true);
+        setNotLoggedIn(true);
         return [];
       }
       if (!res.ok) throw new Error(await res.text());
@@ -58,7 +77,7 @@ export default function TagsPage() {
     try {
       const res = await fetch("/api/notes");
       if (res.status === 401) {
-        if (true) setNotLoggedIn(true);
+        setNotLoggedIn(true);
         return [];
       }
       if (!res.ok) throw new Error(await res.text());
@@ -82,6 +101,17 @@ export default function TagsPage() {
     setTagName("");
     setSelectedNoteIds([]);
   }
+
+  // Helper function to create URL-friendly slug from tag name
+  const createSlug = (name: string): string => {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "") // Remove special characters
+      .replace(/\s+/g, "-") // Replace spaces with hyphens
+      .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+      .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
+  };
 
   async function handleCreateTag() {
     const name = tagName.trim();
@@ -110,16 +140,6 @@ export default function TagsPage() {
       });
       resetForm();
       if (created?.id && created?.name) {
-        // Helper function to create URL-friendly slug from tag name
-        const createSlug = (name: string): string => {
-          return name
-            .toLowerCase()
-            .trim()
-            .replace(/[^\w\s-]/g, "") // Remove special characters
-            .replace(/\s+/g, "-") // Replace spaces with hyphens
-            .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
-            .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
-        };
         const slug = createSlug(created.name);
         router.push(`/TeamNoteTakingApp/tags/${slug}`);
       }
@@ -131,12 +151,9 @@ export default function TagsPage() {
     }
   }
 
-  const tagCount = useMemo(() => tags.length, [tags]);
-
   if (notLoggedIn) {
     return <NotLoggedIn />;
   }
-
 
   return (
     <main className={styles.dashboard}>
@@ -170,57 +187,70 @@ export default function TagsPage() {
 
       <section className={styles.listPane}>
         <div className={styles.listHeader}>
+          <input
+            className={styles.search}
+            placeholder={lang === "en" ? "Search Tag" : "搜索标签"} 
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
           <div>
             <p className={styles.sectionTitle}>{lang === "en" ? "All Tags" : "所有标签"}</p>
             <p className={styles.sectionSubtitle}>
-              {loadingTags ? (lang === "en" ? "Loading" : "正在加载") : tagCount === 0 ? (lang === "en" ? "No Tags Yet." : "没有标签.") : `${tagCount} ${tagCount === 1 ? "" : (lang === "en" ? "Tags" : "个标签")}`}
+              {loadingTags
+                ? lang === "en"
+                  ? "Loading"
+                  : "正在加载"
+                : tagCount === 0
+                ? lang === "en"
+                  ? "No Tags Found."
+                  : "没有标签."
+                : `${tagCount} ${tagCount === 1 ? "" : lang === "en" ? "Tags" : "个标签"}`}
             </p>
           </div>
           <div className={styles.spacer} />
-            <button type="button" className={`${styles.button} ${styles.refreshButton}`} onClick={refreshTags} disabled={loadingTags}>
-              {lang === "en" ? "Refresh" : "刷新"}
-            </button>
+          <button
+            type="button"
+            className={`${styles.button} ${styles.refreshButton}`}
+            onClick={refreshTags}
+            disabled={loadingTags}
+          >
+            {lang === "en" ? "Refresh" : "刷新"}
+          </button>
         </div>
 
         <div className={styles.list}>
           {loadingTags ? (
             <div className={styles.listEmpty}>
               {lang === "en" ? "Loading Tags..." : "正在加载标签"}
-              <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: '50px'}}/>
+              <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: "50px" }} />
             </div>
-          ) : tags.length === 0 ? (
-            <div className={styles.listEmpty}>{lang === "en" ? "No tags yet. Create one from the Tags page!" : "您还没有标签， 去标签页创造一个吧！"}</div>
+          ) : filteredTags.length === 0 ? (
+            <div className={styles.listEmpty}>
+              {query 
+                 ? (lang === "en" ? "No matching tags." : "未找到匹配标签")
+                 : (lang === "en" ? "No tags yet. Create one from the Tags page!" : "您还没有标签， 去标签页创造一个吧！")
+              }
+            </div>
           ) : (
-            tags
-              .slice()
-              .sort((a, b) => a.name.localeCompare(b.name))
-              .map((tag) => {
-                // Helper function to create URL-friendly slug from tag name
-                const createSlug = (name: string): string => {
-                  return name
-                    .toLowerCase()
-                    .trim()
-                    .replace(/[^\w\s-]/g, "") // Remove special characters
-                    .replace(/\s+/g, "-") // Replace spaces with hyphens
-                    .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
-                    .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
-                };
-                const slug = createSlug(tag.name);
-                return (
-                  <Link
-                    key={tag.id}
-                    href={`/TeamNoteTakingApp/tags/${slug}`}
-                    className={styles.tagOption}
-                  >
-                    <span className={styles.tagOptionLabel}>{tag.name}</span>
-                    <span className={styles.tagOptionCount}>
-                      {(tag.notes?.length ?? 0) === 1
-                        ? (lang === "en" ? "1 Note" : "一个笔记")
-                        : `${tag.notes?.length ?? 0} ${lang === "en" ? "Notes" : "个笔记"}`}
-                    </span>
-                  </Link>
-                );
-              })
+            filteredTags.map((tag) => {
+              const slug = createSlug(tag.name);
+              return (
+                <Link
+                  key={tag.id}
+                  href={`/TeamNoteTakingApp/tags/${slug}`}
+                  className={styles.tagOption}
+                >
+                  <span className={styles.tagOptionLabel}>{tag.name}</span>
+                  <span className={styles.tagOptionCount}>
+                    {(tag.notes?.length ?? 0) === 1
+                      ? lang === "en"
+                        ? "1 Note"
+                        : "一个笔记"
+                      : `${tag.notes?.length ?? 0} ${lang === "en" ? "Notes" : "个笔记"}`}
+                  </span>
+                </Link>
+              );
+            })
           )}
         </div>
       </section>
@@ -248,16 +278,19 @@ export default function TagsPage() {
 
             <div className={styles.fieldGroup}>
               <span className={styles.fieldLabel}>{lang === "en" ? "Attached Note:" : "选择的笔记"}</span>
-              <div className={`${styles.surface} ${styles.surfaceDense}`} style={{ maxHeight: 280, overflow: "auto" }}>
+              <div
+                className={`${styles.surface} ${styles.surfaceDense}`}
+                style={{ maxHeight: 280, overflow: "auto" }}
+              >
                 {loadingNotes ? (
                   <div className={styles.listEmpty}>
                     {lang === "en" ? "Loading notes..." : "正在加载笔记"}
-                    <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: '50px'}}/>
+                    <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: "50px" }} />
                   </div>
                 ) : owned.length === 0 ? (
                   <div className={styles.listEmpty}>
                     {lang === "en" ? "No notes yet. Create one first." : "还没有笔记, 去创新一个吧!"}
-                    <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: '50px'}}/>
+                    <img src="/amalie-steiness.gif" alt="loading gif" style={{ width: "50px" }} />
                   </div>
                 ) : (
                   owned.map((note) => {
@@ -286,10 +319,9 @@ export default function TagsPage() {
                           {preview ? (
                             <div className={styles.checkRowPreview}>
                               <RenderHtmlClient
-                              html={preview}
-                              className="quill-content"
-                            />
-                               
+                                html={preview}
+                                className="quill-content"
+                              />
                             </div>
                           ) : null}
                         </div>
@@ -299,7 +331,10 @@ export default function TagsPage() {
                 )}
 
                 <span className={styles.fieldLabel}>Shared notes</span>
-                <div className={`${styles.surface} ${styles.surfaceDense}`} style={{ maxHeight: 280, overflow: "auto" }}>
+                <div
+                  className={`${styles.surface} ${styles.surfaceDense}`}
+                  style={{ maxHeight: 280, overflow: "auto" }}
+                >
                   {loadingNotes ? (
                     <div className={styles.listEmpty}>Loading notes…</div>
                   ) : shared.length === 0 ? (
@@ -342,7 +377,7 @@ export default function TagsPage() {
                 onClick={handleCreateTag}
                 disabled={creating}
               >
-                {creating ? "Creating…" : (lang === "en" ? "Create Tag" : "创建标签")}
+                {creating ? "Creating…" : lang === "en" ? "Create Tag" : "创建标签"}
               </button>
               <button
                 type="button"

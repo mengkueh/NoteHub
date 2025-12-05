@@ -14,7 +14,7 @@ import EditMembers from "@/components/EditMembers";
 import dynamic from "next/dynamic";
 import NotLoggedIn from "@/components/NotLoggedIn";
 import mainStyles from "@/app/TeamNoteTakingApp/home/main.module.css";
-
+import AddTag from "@/components/AddTag";
 
 type Tag = { id: number; name: string };
 type Access = { id: number; role: string; user: { id: string; email: string; displayName?: string } };
@@ -50,6 +50,8 @@ export default function EditNotePage() {
   useLockBodyScroll();
   const [showEditMembers, setShowEditMembers] = useState(false);
   const [notLoggedIn, setNotLoggedIn] = useState(false);
+  const [showAddTag, setShowAddTag] = useState(false);
+
 
   // load tags (for the tag selector)
   useEffect(() => {
@@ -185,8 +187,19 @@ export default function EditNotePage() {
     return <NotLoggedIn />;
   }
 
+  function onTagCreated(tag: Tag) {
+    // append to tags list and mark selected
+    setAllTags((prev) => {
+      // avoid duplicates
+      if (prev.some((t) => t.id === tag.id)) return prev;
+      return [...prev, tag].sort((a, b) => a.name.localeCompare(b.name));
+    });
+    setSelected((prev) => (prev.includes(tag.id) ? prev : [...prev, tag.id]));
+  }
+
   return (
     <main className={styles.dashboard}>
+      <AddTag open={showAddTag} onClose={() => setShowAddTag(false)} onCreated={onTagCreated} />
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <span>NoteHub</span>
@@ -224,17 +237,17 @@ export default function EditNotePage() {
           />
           <button onClick={() => setShowEditMembers(true)} className={`${mainStyles.button} ${mainStyles.buttonPrimary}`}>{lang === "en" ? "Edit Members" : "编辑队员"}</button>
 
-<EditMembers
-  open={showEditMembers}
-  onClose={() => setShowEditMembers(false)}
-  noteId={noteId}
-  ownerEmail={noteDetail?.user?.email}
-  accesses={(noteDetail?.accesses ?? []) as any}
-  onDone={async () => {
-    await refreshNote();
-    setShowEditMembers(false);
-  }}
-/>
+          <EditMembers
+            open={showEditMembers}
+            onClose={() => setShowEditMembers(false)}
+            noteId={noteId}
+            ownerEmail={noteDetail?.user?.email}
+            accesses={(noteDetail?.accesses ?? []) as any}
+            onDone={async () => {
+              await refreshNote();
+              setShowEditMembers(false);
+            }}
+          />
 
         </div>
       </aside>
@@ -245,6 +258,14 @@ export default function EditNotePage() {
             <p className={styles.sectionTitle}>{lang === "en" ? "Tags" : "标签"}</p>
             <p className={styles.sectionSubtitle}>{lang === "en" ? "Choose Tags For This Note" : "为此笔记选择标签"}</p>
           </div>
+          <div className={styles.spacer} />
+            <button 
+              type="button"
+              className={styles.button}
+              onClick={() => setShowAddTag(true)}
+            >
+              {lang === "en" ? "Add New Tag" : "添加新标签"}
+            </button>
         </div>
 
         <div className={styles.list}>
