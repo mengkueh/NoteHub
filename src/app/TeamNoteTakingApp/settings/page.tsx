@@ -152,11 +152,6 @@ export default function SettingPage() {
         >
           {loading ? (
             <>
-              <img
-                src="/amalie-steiness.gif"
-                alt="logging out"
-                style={{ width: '20px', height: '20px' }}
-              />
               <span>{lang === "en" ? "Logging Out..." : "正在登出"}</span>
             </>
           ) : (
