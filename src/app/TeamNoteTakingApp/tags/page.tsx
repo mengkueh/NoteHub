@@ -191,12 +191,7 @@ export default function TagsPage() {
 
       <section className={styles.listPane}>
         <div className={styles.listHeader}>
-          <input
-            className={styles.search}
-            placeholder={lang === "en" ? "Search Tag" : "搜索标签"} 
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
+
           <div>
             <p className={styles.sectionTitle}>{lang === "en" ? "All Tags" : "所有标签"}</p>
             <p className={styles.sectionSubtitle}>
@@ -210,16 +205,17 @@ export default function TagsPage() {
                   : "没有标签."
                 : `${tagCount} ${tagCount === 1 ? "" : lang === "en" ? "Tags" : "个标签"}`}
             </p>
+
           </div>
-          <div className={styles.spacer} />
-          <button
-            type="button"
-            className={`${styles.button} ${styles.refreshButton}`}
-            onClick={refreshTags}
-            disabled={loadingTags}
-          >
-            {lang === "en" ? "Refresh" : "刷新"}
-          </button>
+          <input
+            className={styles.search}
+            placeholder={lang === "en" ? "Search Tag" : "搜索标签"} 
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          
+            
+          
         </div>
 
         <div className={styles.list}>

@@ -139,6 +139,7 @@
   color: #e5e5e5;
   padding: 0 12px;
   outline: none;
+  margin-right: 3px;
 }
 .search::placeholder {
   color: #8b8b8b;
@@ -386,10 +387,6 @@
   font-size: 15px;
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
-}
-
-.refreshButton {
-  margin-right: -3px;
 }
 
 .button:hover:not(:disabled) {
