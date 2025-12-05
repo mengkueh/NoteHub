@@ -173,9 +173,13 @@ export default function TagNotesPage() {
             <span>#</span>
             <span>{lang === "en" ? "Team" : "队员"}</span>
           </Link>
+          <Link href="/TeamNoteTakingApp/recentlyDeleted" className={styles.sidebarButton}>
+            <span>🗑️</span>
+            <span>{lang === "en" ? "Recently Deleted" : "最近删除"}</span>
+          </Link>
           <Link href="/TeamNoteTakingApp/settings" className={styles.sidebarButton}>
             <span>⚙</span>
-            <span>{lang === "en" ? "Setting" : "设置"}</span>
+            <span>{lang === "en" ? "Settings" : "设置"}</span>
           </Link>
         </div>
       </aside>
